@@ -1,0 +1,28 @@
+<!-- @dsCard group="Spacing" viewport="700x160" name="Spacing scale" subtitle="4px grid · 4 → 96" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; padding: 26px 28px; background: var(--surface-panel); }
+  .row { display: flex; align-items: flex-end; gap: 16px; }
+  .col { display: grid; gap: 8px; justify-items: center; }
+  .bar { background: var(--accent); border-radius: var(--radius-xs); width: 100%; }
+  .lbl { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+  .lbl b { display: block; color: var(--text-body); }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div class="col" style="width:18px"><div class="bar" style="height:4px"></div><span class="lbl"><b>1</b>4</span></div>
+    <div class="col" style="width:24px"><div class="bar" style="height:8px"></div><span class="lbl"><b>2</b>8</span></div>
+    <div class="col" style="width:30px"><div class="bar" style="height:12px"></div><span class="lbl"><b>3</b>12</span></div>
+    <div class="col" style="width:36px"><div class="bar" style="height:16px"></div><span class="lbl"><b>4</b>16</span></div>
+    <div class="col" style="width:44px"><div class="bar" style="height:24px"></div><span class="lbl"><b>6</b>24</span></div>
+    <div class="col" style="width:52px"><div class="bar" style="height:32px"></div><span class="lbl"><b>8</b>32</span></div>
+    <div class="col" style="width:64px"><div class="bar" style="height:48px"></div><span class="lbl"><b>12</b>48</span></div>
+    <div class="col" style="width:80px"><div class="bar" style="height:64px"></div><span class="lbl"><b>16</b>64</span></div>
+  </div>
+</body>
+</html>

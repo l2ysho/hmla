@@ -1,0 +1,4 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "ignorePatterns": ["dist", "handoff", "hmla-ambient-engine-v3.jsx", "pnpm-lock.yaml"]
+}

@@ -1,0 +1,28 @@
+<!-- @dsCard group="Spacing" viewport="700x160" name="Corner radii" subtitle="2 → 22px · circles for knobs/LEDs" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; padding: 26px 28px; background: var(--surface-panel); }
+  .row { display: flex; gap: 18px; align-items: flex-end; }
+  .col { display: grid; gap: 9px; justify-items: center; }
+  .box { width: 72px; height: 56px; background: var(--surface-control); border: 1px solid var(--line-hairline); box-shadow: var(--bevel-raised); }
+  .lbl { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+  .lbl b { display: block; color: var(--text-body); }
+  .circle { border-radius: 50%; width: 56px; height: 56px; }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div class="col"><div class="box" style="border-radius:var(--radius-sm)"></div><span class="lbl"><b>sm</b>4px</span></div>
+    <div class="col"><div class="box" style="border-radius:var(--radius-md)"></div><span class="lbl"><b>md</b>7px</span></div>
+    <div class="col"><div class="box" style="border-radius:var(--radius-lg)"></div><span class="lbl"><b>lg</b>11px</span></div>
+    <div class="col"><div class="box" style="border-radius:var(--radius-xl)"></div><span class="lbl"><b>xl</b>16px</span></div>
+    <div class="col"><div class="box" style="border-radius:var(--radius-2xl)"></div><span class="lbl"><b>2xl</b>22px</span></div>
+    <div class="col"><div class="box" style="width:120px;border-radius:var(--radius-pill)"></div><span class="lbl"><b>pill</b>tag/toggle</span></div>
+    <div class="col"><div class="box circle"></div><span class="lbl"><b>round</b>knob/LED</span></div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,5 @@
+<svg width="120" height="64" viewBox="0 0 120 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="hmla signal mark">
+  
+  <path d="M60 32 C60 14, 86 14, 86 32 C86 50, 60 50, 60 32 C60 14, 34 14, 34 32 C34 50, 60 50, 60 32 Z" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+  <circle cx="60" cy="32" r="3.4" fill="currentColor"></circle>
+</svg>

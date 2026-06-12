@@ -1,0 +1,26 @@
+<!-- @dsCard group="Brand" viewport="700x160" name="Texture — film grain" subtitle="always-on overlay · .hmla-grain" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; padding: 24px 28px; background: var(--surface-panel); }
+  .row { display: flex; gap: 16px; }
+  .panel { flex: 1; height: 96px; border-radius: var(--radius-lg); border: 1px solid var(--line-hairline); position: relative; overflow: hidden; display: flex; align-items: flex-end; padding: 10px; }
+  .panel span { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); position: relative; z-index: 2; }
+  .clean { background: var(--surface-raised); }
+  .grainy { background: var(--surface-raised); }
+  .grainy::after { content:""; position:absolute; inset:0; background-image: var(--grain-url); background-size:180px; opacity:0.5; mix-blend-mode:overlay; }
+  .heavy { background: radial-gradient(120% 100% at 50% 0%, #20202a, var(--surface-well)); }
+  .heavy::after { content:""; position:absolute; inset:0; background-image: var(--grain-url); background-size:180px; opacity:0.5; mix-blend-mode:overlay; }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div class="panel clean"><span>no grain — flat</span></div>
+    <div class="panel grainy"><span>+ grain (overlay)</span></div>
+    <div class="panel heavy"><span>grain over gradient</span></div>
+  </div>
+</body>
+</html>

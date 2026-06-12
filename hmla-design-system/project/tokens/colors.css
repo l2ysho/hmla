@@ -1,0 +1,136 @@
+/* hmla — color system
+ * Dual theme. Default = dark (studio at night). [data-theme="light"] = warm paper.
+ * Aesthetic: Elektron / Eurorack precision panels. Signal-orange accent.
+ *
+ * BASE (raw) tokens are theme-specific and live under each theme scope.
+ * SEMANTIC aliases (--surface-*, --text-*, --line-*, --signal-*) are what
+ * components reference — never hard-code a hex in a component. */
+
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* --- raw neutrals: near-black panel stack --- */
+  --ink-950: #08080a; /* deepest void / page */
+  --ink-900: #0d0d10; /* recessed well */
+  --ink-850: #131316; /* panel base */
+  --ink-800: #1a1a1e; /* raised panel */
+  --ink-750: #212126; /* control face */
+  --ink-700: #2a2a30; /* hairline / divider */
+  --ink-600: #383840; /* strong border */
+  --ink-500: #4d4d56; /* faint text */
+  --ink-400: #6b6b75; /* low text / labels */
+  --ink-300: #989aa2; /* muted text */
+  --ink-200: #c4c5cb; /* secondary text */
+  --ink-100: #e8e7e3; /* primary text */
+  --ink-050: #f6f5f1; /* high-contrast text */
+
+  /* --- accent: signal orange --- */
+  --orange-500: #ff5c38; /* core signal */
+  --orange-400: #ff7a5c; /* hover / lift */
+  --orange-600: #e8451f; /* active / press */
+  --orange-700: #b8330f; /* deep */
+  --orange-glow: rgba(255, 92, 56, 0.35);
+  --orange-tint: rgba(255, 92, 56, 0.12);
+
+  /* --- instrument readout / meter signals --- */
+  --led-green: #5dffb0;
+  --led-amber: #ffc24b;
+  --led-red: #ff4d4d;
+  --led-blue: #5b9dff;
+  --led-cyan: #4be0e0;
+
+  /* --- semantic surfaces --- */
+  --surface-page: var(--ink-950);
+  --surface-well: var(--ink-900);
+  --surface-panel: var(--ink-850);
+  --surface-raised: var(--ink-800);
+  --surface-control: var(--ink-750);
+  --surface-control-hover: #2c2c33;
+  --surface-overlay: rgba(13, 13, 16, 0.82);
+  --surface-inset: var(--ink-900);
+
+  /* --- semantic lines --- */
+  --line-hairline: var(--ink-700);
+  --line-soft: rgba(255, 255, 255, 0.06);
+  --line-strong: var(--ink-600);
+  --line-engraved: rgba(0, 0, 0, 0.6);
+
+  /* --- semantic text --- */
+  --text-hi: var(--ink-050);
+  --text-body: var(--ink-100);
+  --text-muted: var(--ink-300);
+  --text-label: var(--ink-400);
+  --text-faint: var(--ink-500);
+  --text-on-accent: #1a0d08;
+
+  /* --- accent aliases --- */
+  --accent: var(--orange-500);
+  --accent-hover: var(--orange-400);
+  --accent-active: var(--orange-600);
+  --accent-glow: var(--orange-glow);
+  --accent-tint: var(--orange-tint);
+
+  /* --- status --- */
+  --status-ok: var(--led-green);
+  --status-warn: var(--led-amber);
+  --status-err: var(--led-red);
+  --status-info: var(--led-blue);
+
+  /* --- visualizer gradient stops --- */
+  --viz-lo: #2a2a30;
+  --viz-mid: #ff5c38;
+  --viz-hi: #ffc24b;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* warm paper stack */
+  --ink-950: #ffffff;
+  --ink-900: #fbfaf6;
+  --ink-850: #f4f1ea; /* panel base */
+  --ink-800: #ece8de; /* raised */
+  --ink-750: #e3ded2; /* control face */
+  --ink-700: #d3cdbe; /* hairline */
+  --ink-600: #b8b1a0; /* strong border */
+  --ink-500: #908a7c; /* faint text */
+  --ink-400: #6f695d; /* low text / labels */
+  --ink-300: #555046; /* muted */
+  --ink-200: #3a362f; /* secondary */
+  --ink-100: #221f1a; /* primary text */
+  --ink-050: #14120e; /* high contrast */
+
+  --orange-500: #e8451f;
+  --orange-400: #ff5c38;
+  --orange-600: #c5360f;
+  --orange-700: #9c2a08;
+  --orange-glow: rgba(232, 69, 31, 0.22);
+  --orange-tint: rgba(232, 69, 31, 0.1);
+
+  --led-green: #1c9e63;
+  --led-amber: #b8801a;
+  --led-red: #d83a3a;
+  --led-blue: #2f6fd6;
+  --led-cyan: #18a0a0;
+
+  --surface-page: var(--ink-900);
+  --surface-well: var(--ink-850);
+  --surface-panel: #fbfaf6;
+  --surface-raised: #ffffff;
+  --surface-control: #ffffff;
+  --surface-control-hover: #f4f1ea;
+  --surface-overlay: rgba(244, 241, 234, 0.82);
+  --surface-inset: var(--ink-850);
+
+  --line-hairline: var(--ink-700);
+  --line-soft: rgba(0, 0, 0, 0.06);
+  --line-strong: var(--ink-600);
+  --line-engraved: rgba(0, 0, 0, 0.12);
+
+  --text-on-accent: #fff6f1;
+
+  --viz-lo: #d3cdbe;
+  --viz-mid: #e8451f;
+  --viz-hi: #b8801a;
+}

@@ -1,0 +1,103 @@
+/* hmla — effects: radii, borders, shadows, glow, grain, motion
+ * Hardware language: engraved panels (inset top-shadow + bottom highlight),
+ * soft drop shadows under raised modules, accent glow on active signals,
+ * and an ever-present film-grain overlay. */
+
+:root {
+  /* radii — hardware is fairly sharp; knobs/LEDs are circles */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 7px;
+  --radius-lg: 11px;
+  --radius-xl: 16px;
+  --radius-2xl: 22px;
+  --radius-pill: 999px;
+  --radius-round: 50%;
+
+  /* border widths */
+  --border-hair: 1px; /* @kind spacing */
+  --border-thick: 1.5px; /* @kind spacing */
+
+  /* drop shadows — raised modules over panel */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.55);
+  --shadow-pop: 0 18px 60px rgba(0, 0, 0, 0.6);
+
+  /* engraved / inset — recessed wells, pressed controls */
+  --shadow-inset: inset 0 1px 0 rgba(0, 0, 0, 0.5), inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+  --shadow-well: inset 0 2px 6px rgba(0, 0, 0, 0.55), inset 0 -1px 0 rgba(255, 255, 255, 0.03);
+
+  /* raised control bevel: subtle top highlight + base shadow */
+  --bevel-raised:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 2px rgba(0, 0, 0, 0.5); /* @kind shadow */
+
+  /* accent glow */
+  --glow-accent: 0 0 0 1px var(--accent-tint), 0 0 18px -2px var(--accent-glow);
+  --glow-accent-strong: 0 0 24px -1px var(--accent-glow), 0 0 1px var(--accent);
+  --glow-led: 0 0 8px currentColor; /* @kind shadow */
+
+  /* focus ring */
+  --ring: 0 0 0 2px var(--surface-page), 0 0 0 4px var(--accent);
+
+  /* motion — precise, mechanical. no bouncy springs. */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1); /* @kind other */
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1); /* @kind other */
+  --ease-snap: cubic-bezier(0.3, 0, 0, 1); /* @kind other */
+  --dur-fast: 110ms; /* @kind other */
+  --dur-base: 180ms; /* @kind other */
+  --dur-slow: 320ms; /* @kind other */
+
+  /* film grain — tiled SVG fractal noise, theme-neutral overlay */
+  --grain-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E"); /* @kind other */
+  --grain-opacity: 0.05; /* @kind other */
+}
+
+[data-theme="light"] {
+  --shadow-sm: 0 1px 2px rgba(40, 34, 24, 0.1);
+  --shadow-md: 0 4px 14px rgba(40, 34, 24, 0.12);
+  --shadow-lg: 0 12px 36px rgba(40, 34, 24, 0.16);
+  --shadow-pop: 0 18px 60px rgba(40, 34, 24, 0.2);
+  --shadow-inset: inset 0 1px 2px rgba(40, 34, 24, 0.14), inset 0 -1px 0 rgba(255, 255, 255, 0.7);
+  --shadow-well: inset 0 2px 6px rgba(40, 34, 24, 0.16), inset 0 -1px 0 rgba(255, 255, 255, 0.7);
+  --bevel-raised:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(40, 34, 24, 0.12); /* @kind shadow */
+  --grain-opacity: 0.035; /* @kind other */
+}
+
+/* ===== global helpers (shipped) ===== */
+
+/* film-grain overlay — drop onto any container; sits above bg, below content */
+.hmla-grain {
+  position: relative;
+}
+.hmla-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--grain-url);
+  background-size: 180px 180px;
+  opacity: var(--grain-opacity);
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  z-index: 1;
+}
+
+/* engraved silkscreen label */
+.hmla-label {
+  font-family: var(--font-display);
+  font-size: var(--fs-label);
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--text-label);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

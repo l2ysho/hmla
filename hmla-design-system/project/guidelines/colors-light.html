@@ -1,0 +1,24 @@
+<!-- @dsCard group="Colors" viewport="700x170" name="Light theme — warm paper" subtitle="ink-on-cream · dual theme" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; padding: 24px 28px; background: var(--surface-page); }
+  .row { display: flex; gap: 14px; }
+  .sw { flex: 1; height: 70px; border-radius: var(--radius-md); border: 1px solid var(--line-hairline); box-shadow: var(--bevel-raised); }
+  .cap { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-top: 9px; }
+  .cap b { color: var(--text-body); font-weight: 500; display: block; }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div style="flex:1"><div class="sw" style="background:var(--surface-page)"></div><div class="cap"><b>page</b>#fbfaf6</div></div>
+    <div style="flex:1"><div class="sw" style="background:var(--surface-well);box-shadow:var(--shadow-well)"></div><div class="cap"><b>well</b>#f4f1ea</div></div>
+    <div style="flex:1"><div class="sw" style="background:var(--surface-raised)"></div><div class="cap"><b>raised</b>#ffffff</div></div>
+    <div style="flex:1"><div class="sw" style="background:var(--accent)"></div><div class="cap"><b>accent</b>#e8451f</div></div>
+    <div style="flex:1"><div class="sw" style="background:var(--surface-control);box-shadow:var(--glow-accent);color:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:11px">glow</div><div class="cap"><b>signal</b>on-state</div></div>
+  </div>
+</body>
+</html>

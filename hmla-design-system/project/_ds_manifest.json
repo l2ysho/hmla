@@ -1,0 +1,1177 @@
+{
+  "namespace": "HmlaDesignSystem_a7a64d",
+  "components": [
+    { "name": "Badge", "sourcePath": "components/core/Badge.jsx" },
+    { "name": "Button", "sourcePath": "components/core/Button.jsx" },
+    { "name": "IconButton", "sourcePath": "components/core/IconButton.jsx" },
+    { "name": "Input", "sourcePath": "components/core/Input.jsx" },
+    { "name": "Select", "sourcePath": "components/core/Select.jsx" },
+    { "name": "Switch", "sourcePath": "components/core/Switch.jsx" },
+    { "name": "Tag", "sourcePath": "components/core/Tag.jsx" },
+    { "name": "Fader", "sourcePath": "components/instrument/Fader.jsx" },
+    { "name": "Knob", "sourcePath": "components/instrument/Knob.jsx" },
+    { "name": "LED", "sourcePath": "components/instrument/LED.jsx" },
+    { "name": "Meter", "sourcePath": "components/instrument/Meter.jsx" },
+    { "name": "Transport", "sourcePath": "components/instrument/Transport.jsx" },
+    { "name": "Visualizer", "sourcePath": "components/instrument/Visualizer.jsx" },
+    { "name": "Panel", "sourcePath": "components/layout/Panel.jsx" },
+    { "name": "Tabs", "sourcePath": "components/layout/Tabs.jsx" }
+  ],
+  "startingPoints": [],
+  "cards": [
+    {
+      "path": "ui_kits/app/index.html",
+      "group": "App",
+      "viewport": "1280x760",
+      "subtitle": "Generative noise player · engine / mixer / library",
+      "name": "hmla studio — web app"
+    },
+    {
+      "path": "guidelines/brand-grain.html",
+      "group": "Brand",
+      "viewport": "700x160",
+      "subtitle": "always-on overlay · .hmla-grain",
+      "name": "Texture — film grain"
+    },
+    {
+      "path": "guidelines/brand-mark.html",
+      "group": "Brand",
+      "viewport": "700x170",
+      "subtitle": "lemniscate · accent · mono · reversed",
+      "name": "Signal mark"
+    },
+    {
+      "path": "guidelines/brand-wordmark.html",
+      "group": "Brand",
+      "viewport": "700x200",
+      "subtitle": "lowercase hmla · Martian Mono · signal mark",
+      "name": "Wordmark & lockup"
+    },
+    {
+      "path": "guidelines/colors-accent.html",
+      "group": "Colors",
+      "viewport": "700x150",
+      "subtitle": "active · hover · press · glow · tint",
+      "name": "Accent — signal orange"
+    },
+    {
+      "path": "guidelines/colors-light.html",
+      "group": "Colors",
+      "viewport": "700x170",
+      "subtitle": "ink-on-cream · dual theme",
+      "name": "Light theme — warm paper"
+    },
+    {
+      "path": "guidelines/colors-signals.html",
+      "group": "Colors",
+      "viewport": "700x160",
+      "subtitle": "meters · status · readouts",
+      "name": "Instrument signals — LEDs"
+    },
+    {
+      "path": "guidelines/colors-surfaces.html",
+      "group": "Colors",
+      "viewport": "700x170",
+      "subtitle": "page · well · panel · raised · control",
+      "name": "Surfaces — panel stack (dark)"
+    },
+    {
+      "path": "guidelines/colors-text.html",
+      "group": "Colors",
+      "viewport": "700x150",
+      "subtitle": "hi · body · muted · label · faint",
+      "name": "Text hierarchy"
+    },
+    {
+      "path": "components/core/core.card.html",
+      "group": "Components",
+      "viewport": "700x380",
+      "subtitle": "Button · IconButton · Input · Select · Switch · Badge · Tag",
+      "name": "Core — buttons, fields, toggles"
+    },
+    {
+      "path": "components/instrument/instrument.card.html",
+      "group": "Components",
+      "viewport": "700x440",
+      "subtitle": "Knob · Fader · LED · Meter · Visualizer · Transport",
+      "name": "Instrument — knob, fader, meter, visualizer, transport"
+    },
+    {
+      "path": "components/layout/layout.card.html",
+      "group": "Components",
+      "viewport": "700x320",
+      "subtitle": "Panel (module container) · Tabs (segmented)",
+      "name": "Layout — panel & tabs"
+    },
+    {
+      "path": "guidelines/spacing-radii.html",
+      "group": "Spacing",
+      "viewport": "700x160",
+      "subtitle": "2 → 22px · circles for knobs/LEDs",
+      "name": "Corner radii"
+    },
+    {
+      "path": "guidelines/spacing-scale.html",
+      "group": "Spacing",
+      "viewport": "700x160",
+      "subtitle": "4px grid · 4 → 96",
+      "name": "Spacing scale"
+    },
+    {
+      "path": "guidelines/spacing-shadows.html",
+      "group": "Spacing",
+      "viewport": "700x180",
+      "subtitle": "engraved hardware language",
+      "name": "Depth — bevels, wells & shadows"
+    },
+    {
+      "path": "guidelines/type-body.html",
+      "group": "Type",
+      "viewport": "700x200",
+      "subtitle": "Long-form, values, code · readable mono",
+      "name": "Body & Data — JetBrains Mono"
+    },
+    {
+      "path": "guidelines/type-display.html",
+      "group": "Type",
+      "viewport": "700x190",
+      "subtitle": "Headings & hero numerals · tight tracking",
+      "name": "Display — Martian Mono"
+    },
+    {
+      "path": "guidelines/type-labels.html",
+      "group": "Type",
+      "viewport": "700x150",
+      "subtitle": "Uppercase · wide tracking · engraved",
+      "name": "Panel Labels — silkscreen"
+    },
+    {
+      "path": "guidelines/type-scale.html",
+      "group": "Type",
+      "viewport": "700x230",
+      "subtitle": "11 → 88px · mono ramp",
+      "name": "Type Scale"
+    }
+  ],
+  "templates": [
+    {
+      "name": "Studio Panel",
+      "description": "Generative-engine starter: visualizer hero, knob rack, transport — built from hmla DS components.",
+      "folder": "templates/studio-panel",
+      "entryPath": "templates/studio-panel/index.html"
+    }
+  ],
+  "globalCssPaths": [
+    "tokens/fonts.css",
+    "tokens/colors.css",
+    "tokens/typography.css",
+    "tokens/spacing.css",
+    "tokens/effects.css",
+    "tokens/base.css",
+    "components/components.css",
+    "styles.css"
+  ],
+  "tokens": [
+    { "name": "--ink-950", "value": "#08080a", "kind": "color", "definedIn": "tokens/colors.css" },
+    { "name": "--ink-900", "value": "#0d0d10", "kind": "color", "definedIn": "tokens/colors.css" },
+    { "name": "--ink-850", "value": "#131316", "kind": "color", "definedIn": "tokens/colors.css" },
+    { "name": "--ink-800", "value": "#1a1a1e", "kind": "color", "definedIn": "tokens/colors.css" },
+    { "name": "--ink-750", "value": "#212126", "kind": "color", "definedIn": "tokens/colors.css" },
+    { "name": "--ink-700", "value": "#2a2a30", "kind": "color", "definedIn": "tokens/colors.css" },
+    { "name": "--ink-600", "value": "#383840", "kind": "color", "definedIn": "tokens/colors.css" },
+    { "name": "--ink-500", "value": "#4d4d56", "kind": "color", "definedIn": "tokens/colors.css" },
+    { "name": "--ink-400", "value": "#6b6b75", "kind": "color", "definedIn": "tokens/colors.css" },
+    { "name": "--ink-300", "value": "#989aa2", "kind": "color", "definedIn": "tokens/colors.css" },
+    { "name": "--ink-200", "value": "#c4c5cb", "kind": "color", "definedIn": "tokens/colors.css" },
+    { "name": "--ink-100", "value": "#e8e7e3", "kind": "color", "definedIn": "tokens/colors.css" },
+    { "name": "--ink-050", "value": "#f6f5f1", "kind": "color", "definedIn": "tokens/colors.css" },
+    {
+      "name": "--orange-500",
+      "value": "#ff5c38",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--orange-400",
+      "value": "#ff7a5c",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--orange-600",
+      "value": "#e8451f",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--orange-700",
+      "value": "#b8330f",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--orange-glow",
+      "value": "rgba(255, 92, 56, 0.35)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--orange-tint",
+      "value": "rgba(255, 92, 56, 0.12)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--led-green",
+      "value": "#5dffb0",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--led-amber",
+      "value": "#ffc24b",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    { "name": "--led-red", "value": "#ff4d4d", "kind": "color", "definedIn": "tokens/colors.css" },
+    { "name": "--led-blue", "value": "#5b9dff", "kind": "color", "definedIn": "tokens/colors.css" },
+    { "name": "--led-cyan", "value": "#4be0e0", "kind": "color", "definedIn": "tokens/colors.css" },
+    {
+      "name": "--surface-page",
+      "value": "var(--ink-950)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--surface-well",
+      "value": "var(--ink-900)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--surface-panel",
+      "value": "var(--ink-850)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--surface-raised",
+      "value": "var(--ink-800)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--surface-control",
+      "value": "var(--ink-750)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--surface-control-hover",
+      "value": "#2c2c33",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--surface-overlay",
+      "value": "rgba(13, 13, 16, 0.82)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--surface-inset",
+      "value": "var(--ink-900)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--line-hairline",
+      "value": "var(--ink-700)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--line-soft",
+      "value": "rgba(255, 255, 255, 0.06)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--line-strong",
+      "value": "var(--ink-600)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--line-engraved",
+      "value": "rgba(0, 0, 0, 0.6)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--text-hi",
+      "value": "var(--ink-050)",
+      "kind": "font",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--text-body",
+      "value": "var(--ink-100)",
+      "kind": "font",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--text-muted",
+      "value": "var(--ink-300)",
+      "kind": "font",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--text-label",
+      "value": "var(--ink-400)",
+      "kind": "font",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--text-faint",
+      "value": "var(--ink-500)",
+      "kind": "font",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--text-on-accent",
+      "value": "#1a0d08",
+      "kind": "font",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--accent",
+      "value": "var(--orange-500)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--accent-hover",
+      "value": "var(--orange-400)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--accent-active",
+      "value": "var(--orange-600)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--accent-glow",
+      "value": "var(--orange-glow)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--accent-tint",
+      "value": "var(--orange-tint)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--status-ok",
+      "value": "var(--led-green)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--status-warn",
+      "value": "var(--led-amber)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--status-err",
+      "value": "var(--led-red)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    {
+      "name": "--status-info",
+      "value": "var(--led-blue)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css"
+    },
+    { "name": "--viz-lo", "value": "#2a2a30", "kind": "color", "definedIn": "tokens/colors.css" },
+    { "name": "--viz-mid", "value": "#ff5c38", "kind": "color", "definedIn": "tokens/colors.css" },
+    { "name": "--viz-hi", "value": "#ffc24b", "kind": "color", "definedIn": "tokens/colors.css" },
+    {
+      "name": "--ink-950",
+      "value": "#ffffff",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--ink-900",
+      "value": "#fbfaf6",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--ink-850",
+      "value": "#f4f1ea",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--ink-800",
+      "value": "#ece8de",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--ink-750",
+      "value": "#e3ded2",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--ink-700",
+      "value": "#d3cdbe",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--ink-600",
+      "value": "#b8b1a0",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--ink-500",
+      "value": "#908a7c",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--ink-400",
+      "value": "#6f695d",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--ink-300",
+      "value": "#555046",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--ink-200",
+      "value": "#3a362f",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--ink-100",
+      "value": "#221f1a",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--ink-050",
+      "value": "#14120e",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--orange-500",
+      "value": "#e8451f",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--orange-400",
+      "value": "#ff5c38",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--orange-600",
+      "value": "#c5360f",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--orange-700",
+      "value": "#9c2a08",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--orange-glow",
+      "value": "rgba(232, 69, 31, 0.22)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--orange-tint",
+      "value": "rgba(232, 69, 31, 0.10)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--led-green",
+      "value": "#1c9e63",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--led-amber",
+      "value": "#b8801a",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--led-red",
+      "value": "#d83a3a",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--led-blue",
+      "value": "#2f6fd6",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--led-cyan",
+      "value": "#18a0a0",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--surface-page",
+      "value": "var(--ink-900)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--surface-well",
+      "value": "var(--ink-850)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--surface-panel",
+      "value": "#fbfaf6",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--surface-raised",
+      "value": "#ffffff",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--surface-control",
+      "value": "#ffffff",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--surface-control-hover",
+      "value": "#f4f1ea",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--surface-overlay",
+      "value": "rgba(244, 241, 234, 0.82)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--surface-inset",
+      "value": "var(--ink-850)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--line-hairline",
+      "value": "var(--ink-700)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--line-soft",
+      "value": "rgba(0, 0, 0, 0.06)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--line-strong",
+      "value": "var(--ink-600)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--line-engraved",
+      "value": "rgba(0, 0, 0, 0.12)",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--text-on-accent",
+      "value": "#fff6f1",
+      "kind": "font",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--viz-lo",
+      "value": "#d3cdbe",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--viz-mid",
+      "value": "#e8451f",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--viz-hi",
+      "value": "#b8801a",
+      "kind": "color",
+      "definedIn": "tokens/colors.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--font-display",
+      "value": "\"Martian Mono\", \"JetBrains Mono\", ui-monospace, monospace",
+      "kind": "font",
+      "definedIn": "tokens/typography.css"
+    },
+    {
+      "name": "--font-mono",
+      "value": "\"JetBrains Mono\", ui-monospace, \"SFMono-Regular\", Menlo, monospace",
+      "kind": "font",
+      "definedIn": "tokens/typography.css"
+    },
+    {
+      "name": "--fs-micro",
+      "value": "0.6875rem",
+      "kind": "spacing",
+      "definedIn": "tokens/typography.css"
+    },
+    {
+      "name": "--fs-label",
+      "value": "0.75rem",
+      "kind": "spacing",
+      "definedIn": "tokens/typography.css"
+    },
+    {
+      "name": "--fs-caption",
+      "value": "0.8125rem",
+      "kind": "spacing",
+      "definedIn": "tokens/typography.css"
+    },
+    {
+      "name": "--fs-body",
+      "value": "0.9375rem",
+      "kind": "spacing",
+      "definedIn": "tokens/typography.css"
+    },
+    {
+      "name": "--fs-value",
+      "value": "1.0625rem",
+      "kind": "spacing",
+      "definedIn": "tokens/typography.css"
+    },
+    { "name": "--fs-h6", "value": "1rem", "kind": "spacing", "definedIn": "tokens/typography.css" },
+    {
+      "name": "--fs-h5",
+      "value": "1.25rem",
+      "kind": "spacing",
+      "definedIn": "tokens/typography.css"
+    },
+    {
+      "name": "--fs-h4",
+      "value": "1.5rem",
+      "kind": "spacing",
+      "definedIn": "tokens/typography.css"
+    },
+    { "name": "--fs-h3", "value": "2rem", "kind": "spacing", "definedIn": "tokens/typography.css" },
+    {
+      "name": "--fs-h2",
+      "value": "2.75rem",
+      "kind": "spacing",
+      "definedIn": "tokens/typography.css"
+    },
+    {
+      "name": "--fs-h1",
+      "value": "3.75rem",
+      "kind": "spacing",
+      "definedIn": "tokens/typography.css"
+    },
+    {
+      "name": "--fs-display",
+      "value": "5.5rem",
+      "kind": "spacing",
+      "definedIn": "tokens/typography.css"
+    },
+    {
+      "name": "--fw-light",
+      "value": "300",
+      "kind": "font",
+      "definedIn": "tokens/typography.css",
+      "annotation": "font"
+    },
+    {
+      "name": "--fw-regular",
+      "value": "400",
+      "kind": "font",
+      "definedIn": "tokens/typography.css",
+      "annotation": "font"
+    },
+    {
+      "name": "--fw-medium",
+      "value": "500",
+      "kind": "font",
+      "definedIn": "tokens/typography.css",
+      "annotation": "font"
+    },
+    {
+      "name": "--fw-semibold",
+      "value": "600",
+      "kind": "font",
+      "definedIn": "tokens/typography.css",
+      "annotation": "font"
+    },
+    {
+      "name": "--fw-bold",
+      "value": "700",
+      "kind": "font",
+      "definedIn": "tokens/typography.css",
+      "annotation": "font"
+    },
+    {
+      "name": "--lh-tight",
+      "value": "1.05",
+      "kind": "font",
+      "definedIn": "tokens/typography.css",
+      "annotation": "font"
+    },
+    {
+      "name": "--lh-snug",
+      "value": "1.2",
+      "kind": "font",
+      "definedIn": "tokens/typography.css",
+      "annotation": "font"
+    },
+    {
+      "name": "--lh-normal",
+      "value": "1.5",
+      "kind": "font",
+      "definedIn": "tokens/typography.css",
+      "annotation": "font"
+    },
+    {
+      "name": "--lh-relaxed",
+      "value": "1.65",
+      "kind": "font",
+      "definedIn": "tokens/typography.css",
+      "annotation": "font"
+    },
+    {
+      "name": "--ls-display",
+      "value": "-0.02em",
+      "kind": "font",
+      "definedIn": "tokens/typography.css",
+      "annotation": "font"
+    },
+    {
+      "name": "--ls-heading",
+      "value": "-0.01em",
+      "kind": "font",
+      "definedIn": "tokens/typography.css",
+      "annotation": "font"
+    },
+    {
+      "name": "--ls-body",
+      "value": "0",
+      "kind": "font",
+      "definedIn": "tokens/typography.css",
+      "annotation": "font"
+    },
+    {
+      "name": "--ls-label",
+      "value": "0.14em",
+      "kind": "font",
+      "definedIn": "tokens/typography.css",
+      "annotation": "font"
+    },
+    {
+      "name": "--ls-label-wide",
+      "value": "0.24em",
+      "kind": "font",
+      "definedIn": "tokens/typography.css",
+      "annotation": "font"
+    },
+    { "name": "--space-0", "value": "0", "kind": "spacing", "definedIn": "tokens/spacing.css" },
+    { "name": "--space-px", "value": "1px", "kind": "spacing", "definedIn": "tokens/spacing.css" },
+    {
+      "name": "--space-1",
+      "value": "0.25rem",
+      "kind": "spacing",
+      "definedIn": "tokens/spacing.css"
+    },
+    {
+      "name": "--space-2",
+      "value": "0.5rem",
+      "kind": "spacing",
+      "definedIn": "tokens/spacing.css"
+    },
+    {
+      "name": "--space-3",
+      "value": "0.75rem",
+      "kind": "spacing",
+      "definedIn": "tokens/spacing.css"
+    },
+    { "name": "--space-4", "value": "1rem", "kind": "spacing", "definedIn": "tokens/spacing.css" },
+    {
+      "name": "--space-5",
+      "value": "1.25rem",
+      "kind": "spacing",
+      "definedIn": "tokens/spacing.css"
+    },
+    {
+      "name": "--space-6",
+      "value": "1.5rem",
+      "kind": "spacing",
+      "definedIn": "tokens/spacing.css"
+    },
+    { "name": "--space-8", "value": "2rem", "kind": "spacing", "definedIn": "tokens/spacing.css" },
+    {
+      "name": "--space-10",
+      "value": "2.5rem",
+      "kind": "spacing",
+      "definedIn": "tokens/spacing.css"
+    },
+    { "name": "--space-12", "value": "3rem", "kind": "spacing", "definedIn": "tokens/spacing.css" },
+    { "name": "--space-16", "value": "4rem", "kind": "spacing", "definedIn": "tokens/spacing.css" },
+    { "name": "--space-20", "value": "5rem", "kind": "spacing", "definedIn": "tokens/spacing.css" },
+    { "name": "--space-24", "value": "6rem", "kind": "spacing", "definedIn": "tokens/spacing.css" },
+    {
+      "name": "--control-h-sm",
+      "value": "28px",
+      "kind": "spacing",
+      "definedIn": "tokens/spacing.css"
+    },
+    {
+      "name": "--control-h-md",
+      "value": "36px",
+      "kind": "spacing",
+      "definedIn": "tokens/spacing.css"
+    },
+    {
+      "name": "--control-h-lg",
+      "value": "44px",
+      "kind": "spacing",
+      "definedIn": "tokens/spacing.css"
+    },
+    { "name": "--knob-sm", "value": "44px", "kind": "spacing", "definedIn": "tokens/spacing.css" },
+    { "name": "--knob-md", "value": "64px", "kind": "spacing", "definedIn": "tokens/spacing.css" },
+    { "name": "--knob-lg", "value": "96px", "kind": "spacing", "definedIn": "tokens/spacing.css" },
+    {
+      "name": "--gutter",
+      "value": "var(--space-6)",
+      "kind": "color",
+      "definedIn": "tokens/spacing.css"
+    },
+    {
+      "name": "--panel-pad",
+      "value": "var(--space-5)",
+      "kind": "spacing",
+      "definedIn": "tokens/spacing.css"
+    },
+    {
+      "name": "--max-content",
+      "value": "1240px",
+      "kind": "spacing",
+      "definedIn": "tokens/spacing.css"
+    },
+    { "name": "--rail-w", "value": "264px", "kind": "spacing", "definedIn": "tokens/spacing.css" },
+    { "name": "--radius-xs", "value": "2px", "kind": "radius", "definedIn": "tokens/effects.css" },
+    { "name": "--radius-sm", "value": "4px", "kind": "radius", "definedIn": "tokens/effects.css" },
+    { "name": "--radius-md", "value": "7px", "kind": "radius", "definedIn": "tokens/effects.css" },
+    { "name": "--radius-lg", "value": "11px", "kind": "radius", "definedIn": "tokens/effects.css" },
+    { "name": "--radius-xl", "value": "16px", "kind": "radius", "definedIn": "tokens/effects.css" },
+    {
+      "name": "--radius-2xl",
+      "value": "22px",
+      "kind": "radius",
+      "definedIn": "tokens/effects.css"
+    },
+    {
+      "name": "--radius-pill",
+      "value": "999px",
+      "kind": "radius",
+      "definedIn": "tokens/effects.css"
+    },
+    {
+      "name": "--radius-round",
+      "value": "50%",
+      "kind": "radius",
+      "definedIn": "tokens/effects.css"
+    },
+    {
+      "name": "--border-hair",
+      "value": "1px",
+      "kind": "spacing",
+      "definedIn": "tokens/effects.css",
+      "annotation": "spacing"
+    },
+    {
+      "name": "--border-thick",
+      "value": "1.5px",
+      "kind": "spacing",
+      "definedIn": "tokens/effects.css",
+      "annotation": "spacing"
+    },
+    {
+      "name": "--shadow-sm",
+      "value": "0 1px 2px rgba(0,0,0,0.4)",
+      "kind": "shadow",
+      "definedIn": "tokens/effects.css"
+    },
+    {
+      "name": "--shadow-md",
+      "value": "0 4px 14px rgba(0,0,0,0.45)",
+      "kind": "shadow",
+      "definedIn": "tokens/effects.css"
+    },
+    {
+      "name": "--shadow-lg",
+      "value": "0 12px 36px rgba(0,0,0,0.55)",
+      "kind": "shadow",
+      "definedIn": "tokens/effects.css"
+    },
+    {
+      "name": "--shadow-pop",
+      "value": "0 18px 60px rgba(0,0,0,0.6)",
+      "kind": "shadow",
+      "definedIn": "tokens/effects.css"
+    },
+    {
+      "name": "--shadow-inset",
+      "value": "inset 0 1px 0 rgba(0,0,0,0.5), inset 0 -1px 0 rgba(255,255,255,0.04)",
+      "kind": "shadow",
+      "definedIn": "tokens/effects.css"
+    },
+    {
+      "name": "--shadow-well",
+      "value": "inset 0 2px 6px rgba(0,0,0,0.55), inset 0 -1px 0 rgba(255,255,255,0.03)",
+      "kind": "shadow",
+      "definedIn": "tokens/effects.css"
+    },
+    {
+      "name": "--bevel-raised",
+      "value": "inset 0 1px 0 rgba(255,255,255,0.06), 0 1px 2px rgba(0,0,0,0.5)",
+      "kind": "shadow",
+      "definedIn": "tokens/effects.css",
+      "annotation": "shadow"
+    },
+    {
+      "name": "--glow-accent",
+      "value": "0 0 0 1px var(--accent-tint), 0 0 18px -2px var(--accent-glow)",
+      "kind": "color",
+      "definedIn": "tokens/effects.css"
+    },
+    {
+      "name": "--glow-accent-strong",
+      "value": "0 0 24px -1px var(--accent-glow), 0 0 1px var(--accent)",
+      "kind": "color",
+      "definedIn": "tokens/effects.css"
+    },
+    {
+      "name": "--glow-led",
+      "value": "0 0 8px currentColor",
+      "kind": "shadow",
+      "definedIn": "tokens/effects.css",
+      "annotation": "shadow"
+    },
+    {
+      "name": "--ring",
+      "value": "0 0 0 2px var(--surface-page), 0 0 0 4px var(--accent)",
+      "kind": "color",
+      "definedIn": "tokens/effects.css"
+    },
+    {
+      "name": "--ease-out",
+      "value": "cubic-bezier(0.2, 0.7, 0.2, 1)",
+      "kind": "other",
+      "definedIn": "tokens/effects.css",
+      "annotation": "other"
+    },
+    {
+      "name": "--ease-in-out",
+      "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+      "kind": "other",
+      "definedIn": "tokens/effects.css",
+      "annotation": "other"
+    },
+    {
+      "name": "--ease-snap",
+      "value": "cubic-bezier(0.3, 0, 0, 1)",
+      "kind": "other",
+      "definedIn": "tokens/effects.css",
+      "annotation": "other"
+    },
+    {
+      "name": "--dur-fast",
+      "value": "110ms",
+      "kind": "other",
+      "definedIn": "tokens/effects.css",
+      "annotation": "other"
+    },
+    {
+      "name": "--dur-base",
+      "value": "180ms",
+      "kind": "other",
+      "definedIn": "tokens/effects.css",
+      "annotation": "other"
+    },
+    {
+      "name": "--dur-slow",
+      "value": "320ms",
+      "kind": "other",
+      "definedIn": "tokens/effects.css",
+      "annotation": "other"
+    },
+    {
+      "name": "--grain-url",
+      "value": "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E\")",
+      "kind": "other",
+      "definedIn": "tokens/effects.css",
+      "annotation": "other"
+    },
+    {
+      "name": "--grain-opacity",
+      "value": "0.05",
+      "kind": "other",
+      "definedIn": "tokens/effects.css",
+      "annotation": "other"
+    },
+    {
+      "name": "--shadow-sm",
+      "value": "0 1px 2px rgba(40,34,24,0.10)",
+      "kind": "shadow",
+      "definedIn": "tokens/effects.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--shadow-md",
+      "value": "0 4px 14px rgba(40,34,24,0.12)",
+      "kind": "shadow",
+      "definedIn": "tokens/effects.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--shadow-lg",
+      "value": "0 12px 36px rgba(40,34,24,0.16)",
+      "kind": "shadow",
+      "definedIn": "tokens/effects.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--shadow-pop",
+      "value": "0 18px 60px rgba(40,34,24,0.20)",
+      "kind": "shadow",
+      "definedIn": "tokens/effects.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--shadow-inset",
+      "value": "inset 0 1px 2px rgba(40,34,24,0.14), inset 0 -1px 0 rgba(255,255,255,0.7)",
+      "kind": "shadow",
+      "definedIn": "tokens/effects.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--shadow-well",
+      "value": "inset 0 2px 6px rgba(40,34,24,0.16), inset 0 -1px 0 rgba(255,255,255,0.7)",
+      "kind": "shadow",
+      "definedIn": "tokens/effects.css",
+      "scope": "[data-theme=\"light\"]"
+    },
+    {
+      "name": "--bevel-raised",
+      "value": "inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 2px rgba(40,34,24,0.12)",
+      "kind": "shadow",
+      "definedIn": "tokens/effects.css",
+      "scope": "[data-theme=\"light\"]",
+      "annotation": "shadow"
+    },
+    {
+      "name": "--grain-opacity",
+      "value": "0.035",
+      "kind": "other",
+      "definedIn": "tokens/effects.css",
+      "scope": "[data-theme=\"light\"]",
+      "annotation": "other"
+    }
+  ],
+  "themes": [{ "selector": "[data-theme=\"light\"]", "label": "Light" }],
+  "fonts": [],
+  "brandFonts": [
+    {
+      "family": "Martian Mono",
+      "status": "ok",
+      "tokens": ["--font-display"],
+      "path": "tokens/typography.css"
+    },
+    {
+      "family": "JetBrains Mono",
+      "status": "ok",
+      "tokens": ["--font-mono"],
+      "path": "tokens/typography.css"
+    }
+  ],
+  "source": "spa"
+}

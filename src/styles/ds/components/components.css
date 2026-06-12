@@ -1,0 +1,616 @@
+/* hmla — component styles
+ * Class-based styling for the React primitives in components/. Shipped via
+ * styles.css so consuming projects get hover/press/focus states for free.
+ * Components apply these classes; only dynamic values (knob angle, meter
+ * level) are set via inline style. Prefix: .hmla- */
+
+/* ============================== BUTTON ============================== */
+.hmla-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: var(--control-h-md);
+  padding: 0 var(--space-4);
+  font-family: var(--font-display);
+  font-size: var(--fs-label);
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--text-body);
+  background: var(--surface-control);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--bevel-raised);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+.hmla-btn:hover {
+  background: var(--surface-control-hover);
+  color: var(--text-hi);
+  border-color: var(--ink-500);
+}
+.hmla-btn:active {
+  transform: translateY(1px);
+  box-shadow: var(--shadow-inset);
+  background: var(--surface-well);
+}
+.hmla-btn:focus-visible {
+  box-shadow: var(--ring);
+}
+.hmla-btn[disabled] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.hmla-btn .hmla-btn__ico {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+}
+.hmla-btn .hmla-btn__ico svg {
+  width: 100%;
+  height: 100%;
+}
+
+.hmla-btn--accent {
+  color: var(--text-on-accent);
+  background: var(--accent);
+  border-color: transparent;
+  box-shadow: var(--bevel-raised), var(--glow-accent);
+}
+.hmla-btn--accent:hover {
+  background: var(--accent-hover);
+  color: var(--text-on-accent);
+  border-color: transparent;
+  box-shadow: var(--bevel-raised), var(--glow-accent-strong);
+}
+.hmla-btn--accent:active {
+  background: var(--accent-active);
+  box-shadow: var(--shadow-inset);
+}
+
+.hmla-btn--ghost {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--text-muted);
+}
+.hmla-btn--ghost:hover {
+  background: var(--surface-control);
+  color: var(--text-hi);
+  border-color: var(--line-hairline);
+}
+.hmla-btn--ghost:active {
+  background: var(--surface-well);
+}
+
+.hmla-btn--danger {
+  color: var(--led-red);
+}
+.hmla-btn--danger:hover {
+  background: rgba(255, 77, 77, 0.12);
+  border-color: var(--led-red);
+  color: var(--led-red);
+}
+
+.hmla-btn--sm {
+  height: var(--control-h-sm);
+  padding: 0 var(--space-3);
+  font-size: var(--fs-micro);
+}
+.hmla-btn--lg {
+  height: var(--control-h-lg);
+  padding: 0 var(--space-6);
+  font-size: var(--fs-caption);
+}
+.hmla-btn--block {
+  display: flex;
+  width: 100%;
+}
+
+/* icon-only */
+.hmla-iconbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-h-md);
+  height: var(--control-h-md);
+  padding: 0;
+  color: var(--text-muted);
+  background: var(--surface-control);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--bevel-raised);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+.hmla-iconbtn:hover {
+  color: var(--text-hi);
+  background: var(--surface-control-hover);
+  border-color: var(--ink-500);
+}
+.hmla-iconbtn:active {
+  transform: translateY(1px);
+  box-shadow: var(--shadow-inset);
+}
+.hmla-iconbtn:focus-visible {
+  box-shadow: var(--ring);
+}
+.hmla-iconbtn[disabled] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.hmla-iconbtn[data-active="true"] {
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: var(--glow-accent);
+}
+.hmla-iconbtn--sm {
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
+}
+.hmla-iconbtn--lg {
+  width: var(--control-h-lg);
+  height: var(--control-h-lg);
+}
+.hmla-iconbtn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ============================== INPUT / SELECT ============================== */
+.hmla-field {
+  display: grid;
+  gap: var(--space-2);
+}
+.hmla-field__label {
+  font-family: var(--font-display);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--text-label);
+}
+.hmla-input,
+.hmla-select {
+  height: var(--control-h-md);
+  width: 100%;
+  padding: 0 var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-body);
+  color: var(--text-hi);
+  background: var(--surface-well);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-well);
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+.hmla-input::placeholder {
+  color: var(--text-faint);
+}
+.hmla-input:hover,
+.hmla-select:hover {
+  border-color: var(--ink-500);
+}
+.hmla-input:focus,
+.hmla-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--shadow-well), var(--glow-accent);
+}
+.hmla-input[disabled],
+.hmla-select[disabled] {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.hmla-select {
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b6b75' stroke-width='1.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-3) center;
+  padding-right: var(--space-8);
+}
+
+/* ============================== SWITCH ============================== */
+.hmla-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+  user-select: none;
+}
+.hmla-switch__track {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  flex: none;
+  border-radius: var(--radius-pill);
+  background: var(--surface-well);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-well);
+  transition:
+    background var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out);
+}
+.hmla-switch__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--ink-400);
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform var(--dur-base) var(--ease-snap),
+    background var(--dur-base) var(--ease-out);
+}
+.hmla-switch[data-on="true"] .hmla-switch__track {
+  background: var(--accent-tint);
+  border-color: var(--accent);
+  box-shadow: var(--glow-accent);
+}
+.hmla-switch[data-on="true"] .hmla-switch__thumb {
+  transform: translateX(20px);
+  background: var(--accent);
+  box-shadow: var(--glow-led);
+}
+.hmla-switch__label {
+  font-family: var(--font-display);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--text-label);
+}
+.hmla-switch:focus-visible .hmla-switch__track {
+  box-shadow: var(--ring);
+}
+
+/* ============================== BADGE / TAG ============================== */
+.hmla-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 22px;
+  padding: 0 var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: var(--surface-control);
+  border: 1px solid var(--line-hairline);
+  border-radius: var(--radius-sm);
+}
+.hmla-badge--accent {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-tint);
+}
+.hmla-badge--ok {
+  color: var(--led-green);
+  border-color: color-mix(in oklab, var(--led-green) 50%, transparent);
+  background: color-mix(in oklab, var(--led-green) 12%, transparent);
+}
+.hmla-badge--warn {
+  color: var(--led-amber);
+  border-color: color-mix(in oklab, var(--led-amber) 50%, transparent);
+  background: color-mix(in oklab, var(--led-amber) 12%, transparent);
+}
+.hmla-badge--err {
+  color: var(--led-red);
+  border-color: color-mix(in oklab, var(--led-red) 50%, transparent);
+  background: color-mix(in oklab, var(--led-red) 12%, transparent);
+}
+.hmla-badge__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: var(--glow-led);
+}
+
+.hmla-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 26px;
+  padding: 0 var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  color: var(--text-body);
+  background: var(--surface-control);
+  border: 1px solid var(--line-hairline);
+  border-radius: var(--radius-pill);
+}
+.hmla-tag__x {
+  display: inline-flex;
+  cursor: pointer;
+  color: var(--text-faint);
+}
+.hmla-tag__x:hover {
+  color: var(--text-hi);
+}
+
+/* ============================== LED / STATUS DOT ============================== */
+.hmla-led {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ink-600);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+.hmla-led[data-on="true"] {
+  box-shadow:
+    0 0 8px currentColor,
+    inset 0 0 1px rgba(255, 255, 255, 0.4);
+  background: currentColor;
+}
+
+/* ============================== PANEL / CARD ============================== */
+.hmla-panel {
+  background: var(--surface-raised);
+  border: 1px solid var(--line-hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--bevel-raised), var(--shadow-md);
+}
+.hmla-panel--well {
+  background: var(--surface-well);
+  box-shadow: var(--shadow-well);
+}
+.hmla-panel--flush {
+  box-shadow: var(--bevel-raised);
+}
+.hmla-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--panel-pad);
+  border-bottom: 1px solid var(--line-hairline);
+}
+.hmla-panel__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--text-label);
+}
+.hmla-panel__body {
+  padding: var(--panel-pad);
+}
+
+/* ============================== TABS ============================== */
+.hmla-tabs {
+  display: inline-flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  background: var(--surface-well);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-well);
+}
+.hmla-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 30px;
+  padding: 0 var(--space-4);
+  font-family: var(--font-display);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--text-label);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+}
+.hmla-tab:hover {
+  color: var(--text-hi);
+}
+.hmla-tab[data-active="true"] {
+  color: var(--text-on-accent);
+  background: var(--accent);
+  box-shadow: var(--glow-accent);
+}
+
+/* ============================== METER ============================== */
+.hmla-meter {
+  position: relative;
+  background: var(--surface-well);
+  border-radius: var(--radius-xs);
+  box-shadow: var(--shadow-well);
+  overflow: hidden;
+}
+.hmla-meter--h {
+  height: 8px;
+  width: 100%;
+}
+.hmla-meter--v {
+  width: 8px;
+  height: 100%;
+}
+.hmla-meter__fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  background: linear-gradient(
+    90deg,
+    var(--led-green) 0%,
+    var(--led-green) 62%,
+    var(--led-amber) 84%,
+    var(--led-red) 100%
+  );
+}
+.hmla-meter--v .hmla-meter__fill {
+  transform-origin: bottom center;
+  background: linear-gradient(
+    0deg,
+    var(--led-green) 0%,
+    var(--led-green) 62%,
+    var(--led-amber) 84%,
+    var(--led-red) 100%
+  );
+}
+
+/* ============================== KNOB ============================== */
+.hmla-knob {
+  display: inline-grid;
+  justify-items: center;
+  gap: var(--space-2);
+  user-select: none;
+}
+.hmla-knob__dial {
+  position: relative;
+  width: var(--knob-md);
+  height: var(--knob-md);
+  border-radius: 50%;
+  background: radial-gradient(120% 120% at 50% 30%, var(--surface-control) 0%, var(--ink-900) 100%);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--bevel-raised), var(--shadow-md);
+  cursor: ns-resize;
+  touch-action: none;
+}
+.hmla-knob__dial::before {
+  /* tick groove ring */
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  border: 1px solid var(--line-soft);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+.hmla-knob__pointer {
+  /* the indicator line */
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 2px;
+  height: 38%;
+  background: var(--accent);
+  border-radius: var(--radius-pill);
+  transform-origin: bottom center;
+  translate: -50% 0;
+  box-shadow: var(--glow-led);
+}
+.hmla-knob__dial:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+.hmla-knob__label {
+  font-family: var(--font-display);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--text-label);
+}
+.hmla-knob__value {
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  color: var(--text-hi);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================== FADER ============================== */
+.hmla-fader {
+  display: inline-grid;
+  justify-items: center;
+  gap: var(--space-2);
+}
+.hmla-fader__track {
+  position: relative;
+  width: 36px;
+  height: 150px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-well);
+  box-shadow: var(--shadow-well);
+  border: 1px solid var(--line-strong);
+  cursor: ns-resize;
+  touch-action: none;
+}
+.hmla-fader__slot {
+  position: absolute;
+  left: 50%;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  translate: -50% 0;
+  background: var(--ink-900);
+  border-radius: var(--radius-pill);
+  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.8);
+}
+.hmla-fader__fill {
+  position: absolute;
+  left: 50%;
+  width: 4px;
+  translate: -50% 0;
+  bottom: 10px;
+  background: var(--accent);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--glow-led);
+}
+.hmla-fader__cap {
+  position: absolute;
+  left: 50%;
+  width: 30px;
+  height: 16px;
+  translate: -50% 50%;
+  background: linear-gradient(180deg, var(--surface-control), var(--ink-800));
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-xs);
+  box-shadow: var(--bevel-raised), var(--shadow-sm);
+}
+.hmla-fader__cap::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: 50%;
+  height: 1px;
+  translate: 0 -50%;
+  background: var(--accent);
+  opacity: 0.8;
+}
+.hmla-fader__track:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+.hmla-fader__label {
+  font-family: var(--font-display);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--text-label);
+}
+
+/* ============================== TRANSPORT ============================== */
+.hmla-transport {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  background: var(--surface-panel);
+  border: 1px solid var(--line-hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--bevel-raised), var(--shadow-md);
+}
+.hmla-transport__sep {
+  width: 1px;
+  align-self: stretch;
+  background: var(--line-hairline);
+  margin: 0 var(--space-1);
+}

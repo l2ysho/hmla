@@ -1,0 +1,14 @@
+packages:
+  - "."
+
+# Only these packages are allowed to run install/build scripts.
+# Add entries here ONLY when `pnpm install` fails naming a blocked package.
+allowBuilds:
+  "0": esbuild
+blockExoticSubdeps: true
+
+# Supply-chain hardening (Shai-Hulud worm mitigations).
+# https://www.nodejs-security.com/blog/hardening-your-npm-pnpm-config-for-shai-hulud
+minimumReleaseAge: 43200 # 30 days, in minutes
+strictDepBuilds: true
+trustPolicy: no-downgrade

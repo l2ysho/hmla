@@ -1,0 +1,39 @@
+<!-- @dsCard group="Colors" viewport="700x170" name="Surfaces — panel stack (dark)" subtitle="page · well · panel · raised · control" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; padding: 24px 28px; background: var(--surface-page); }
+  .row { display: flex; gap: 14px; }
+  .sw { flex: 1; height: 78px; border-radius: var(--radius-md); border: 1px solid var(--line-hairline); box-shadow: var(--bevel-raised); }
+  .cap { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-top: 9px; line-height: 1.4; }
+  .cap b { color: var(--text-body); font-weight: 500; display: block; }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div style="flex:1">
+      <div class="sw" style="background:var(--surface-page)"></div>
+      <div class="cap"><b>page</b>#08080a</div>
+    </div>
+    <div style="flex:1">
+      <div class="sw" style="background:var(--surface-well);box-shadow:var(--shadow-well)"></div>
+      <div class="cap"><b>well</b>#0d0d10</div>
+    </div>
+    <div style="flex:1">
+      <div class="sw" style="background:var(--surface-panel)"></div>
+      <div class="cap"><b>panel</b>#131316</div>
+    </div>
+    <div style="flex:1">
+      <div class="sw" style="background:var(--surface-raised)"></div>
+      <div class="cap"><b>raised</b>#1a1a1e</div>
+    </div>
+    <div style="flex:1">
+      <div class="sw" style="background:var(--surface-control)"></div>
+      <div class="cap"><b>control</b>#212126</div>
+    </div>
+  </div>
+</body>
+</html>

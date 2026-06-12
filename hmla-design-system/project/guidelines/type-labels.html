@@ -1,0 +1,26 @@
+<!-- @dsCard group="Type" viewport="700x150" name="Panel Labels — silkscreen" subtitle="Uppercase · wide tracking · engraved" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; padding: 26px 28px; background: var(--surface-panel); }
+  .grid { display: flex; gap: 30px; flex-wrap: wrap; align-items: flex-end; }
+  .lbl { font-family: var(--font-display); text-transform: uppercase; color: var(--text-label); }
+  .l1 { font-size: 12px; letter-spacing: .14em; }
+  .l2 { font-size: 11px; letter-spacing: .24em; color: var(--text-faint); }
+  .stack { display: grid; gap: 8px; }
+  .val { font-family: var(--font-mono); font-size: 20px; color: var(--text-hi); font-variant-numeric: tabular-nums; }
+  .on { color: var(--accent); }
+</style>
+</head>
+<body>
+  <div class="grid">
+    <div class="stack"><span class="lbl l1">gain</span><span class="val">−6.0</span></div>
+    <div class="stack"><span class="lbl l1">density</span><span class="val">0.85</span></div>
+    <div class="stack"><span class="lbl l1">output bus</span><span class="val on">A · live</span></div>
+    <div class="stack"><span class="lbl l2">section · eyebrow</span><span class="lbl l1">generative engine</span></div>
+  </div>
+</body>
+</html>

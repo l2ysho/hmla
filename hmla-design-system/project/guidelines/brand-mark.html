@@ -1,0 +1,41 @@
+<!-- @dsCard group="Brand" viewport="700x170" name="Signal mark" subtitle="lemniscate · accent · mono · reversed" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; padding: 28px; background: var(--surface-panel); }
+  .row { display: flex; gap: 22px; align-items: center; }
+  .chip { width: 132px; height: 92px; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; border: 1px solid var(--line-hairline); }
+  .chip svg { width: 78px; height: 44px; display: block; }
+  .cap { font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); text-align: center; margin-top: 9px; }
+  .col { display: grid; }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div class="col">
+      <div class="chip" style="background:var(--surface-control);color:var(--accent);box-shadow:var(--glow-accent)">
+        <svg viewBox="0 0 120 64" fill="none"><path d="M60 32 C60 14, 86 14, 86 32 C86 50, 60 50, 60 32 C60 14, 34 14, 34 32 C34 50, 60 50, 60 32 Z" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="60" cy="32" r="3.4" fill="currentColor"/></svg>
+      </div>
+      <div class="cap">accent · live</div>
+    </div>
+    <div class="col">
+      <div class="chip" style="background:var(--surface-control);color:var(--text-body)">
+        <svg viewBox="0 0 120 64" fill="none"><path d="M60 32 C60 14, 86 14, 86 32 C86 50, 60 50, 60 32 C60 14, 34 14, 34 32 C34 50, 60 50, 60 32 Z" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="60" cy="32" r="3.4" fill="currentColor"/></svg>
+      </div>
+      <div class="cap">monochrome</div>
+    </div>
+    <div class="col">
+      <div class="chip" style="background:var(--accent);color:var(--text-on-accent)">
+        <svg viewBox="0 0 120 64" fill="none"><path d="M60 32 C60 14, 86 14, 86 32 C86 50, 60 50, 60 32 C60 14, 34 14, 34 32 C34 50, 60 50, 60 32 Z" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="60" cy="32" r="3.4" fill="currentColor"/></svg>
+      </div>
+      <div class="cap">reversed</div>
+    </div>
+    <div class="col" style="margin-left:6px;max-width:200px">
+      <span style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted);line-height:1.6">a lemniscate — the loop that never resolves. clear space ≥ the dot radius on all sides. never recolor outside the signal palette.</span>
+    </div>
+  </div>
+</body>
+</html>

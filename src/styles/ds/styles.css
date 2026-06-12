@@ -1,0 +1,11 @@
+/* hmla design system — global entry point.
+ * Consuming projects link THIS file. It is import-only by contract:
+ * everything reachable from here ships to consumers. */
+
+@import "tokens/fonts.css";
+@import "tokens/colors.css";
+@import "tokens/typography.css";
+@import "tokens/spacing.css";
+@import "tokens/effects.css";
+@import "tokens/base.css";
+@import "components/components.css";

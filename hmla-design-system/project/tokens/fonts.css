@@ -1,0 +1,6 @@
+/* hmla — webfonts
+ * Mono-forward system. Display/labels: Martian Mono (geometric technical mono,
+ * Eurorack panel feel). Body/data/code: JetBrains Mono (readable mono).
+ * NOTE: loaded from Google Fonts CDN. To ship a fully offline/self-hosted
+ * system, replace these with local @font-face rules + woff2 binaries. */
+@import url("https://fonts.googleapis.com/css2?family=Martian+Mono:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap");

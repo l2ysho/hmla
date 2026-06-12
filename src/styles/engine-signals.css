@@ -1,0 +1,53 @@
+/* hmla — engine signal palette (APP-LEVEL EXTENSION to the design system)
+ *
+ * These are NOT part of the canonical DS palette (tokens/colors.css). They are
+ * the engine's per-voice / per-hit / visualizer identity colors — used by the
+ * generative <canvas> scope (engine/useVisual) and the matching status LEDs.
+ * Kept here, theme-aware, so no raw hex lives in component/engine code and the
+ * scope adapts to the warm-paper light theme like the rest of the system. */
+
+:root,
+[data-theme="dark"] {
+  /* melodic voices (3) */
+  --voice-1: #e0589f; /* pink */
+  --voice-2: #d6c44f; /* yellow-green */
+  --voice-3: #43c2b0; /* teal */
+
+  /* rhythm hits */
+  --hit-boom: #8b7bd8;
+  --hit-pluck: #c4b5fd;
+  --hit-shaker: #7ad0e0;
+  --hit-ping: #ffce7a;
+  --hit-fallback: #a78bfa;
+
+  /* channel accents not covered by the DS LED palette */
+  --ch-sub: #818cf8;
+  --ch-lofi: #fb7185;
+
+  /* visualizer-only signals */
+  --viz-grain: #6fd6e8; /* drifting grain motes */
+  --viz-capture: #8ef0d8; /* capture/record sweep */
+  --viz-idle: #6fd6e8; /* idle starfield — lit */
+  --viz-idle-dim: #23304a; /* idle starfield — dim */
+}
+
+[data-theme="light"] {
+  /* deepened for contrast on warm paper, mirroring the DS LED light ramp */
+  --voice-1: #c5327a;
+  --voice-2: #8a7510;
+  --voice-3: #1f8f7e;
+
+  --hit-boom: #6149b8;
+  --hit-pluck: #7c5fd6;
+  --hit-shaker: #2f8fb5;
+  --hit-ping: #b8801a;
+  --hit-fallback: #6d4fd0;
+
+  --ch-sub: #4a50c5;
+  --ch-lofi: #d6485f;
+
+  --viz-grain: #2f8fb5;
+  --viz-capture: #1f9b80;
+  --viz-idle: #2f8fb5;
+  --viz-idle-dim: #c4bdac;
+}

@@ -1,0 +1,73 @@
+<!-- @dsCard group="Components" viewport="700x440" name="Instrument — knob, fader, meter, visualizer, transport" subtitle="Knob · Fader · LED · Meter · Visualizer · Transport" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  body { margin: 0; padding: 24px 26px; background: var(--surface-panel); }
+  .wrap { display: grid; gap: 20px; }
+  .rack { display: flex; gap: 26px; align-items: flex-end; flex-wrap: wrap; }
+  .cap { font-family: var(--font-display); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 10px; }
+  .meters { display: grid; gap: 9px; min-width: 220px; }
+  .mrow { display: grid; grid-template-columns: 52px 1fr 40px; gap: 10px; align-items: center; }
+  .mlbl { font-family: var(--font-display); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-label); }
+  .mval { font-family: var(--font-mono); font-size: 12px; color: var(--text-hi); text-align: right; font-variant-numeric: tabular-nums; }
+  .viz { background: var(--surface-well); border-radius: var(--radius-md); box-shadow: var(--shadow-well); padding: 8px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script type="text/babel">
+  const { Knob, Fader, LED, Meter, Visualizer, Transport } = window.HmlaDesignSystem_a7a64d;
+  function Demo() {
+    const [playing, setPlaying] = React.useState(true);
+    return (
+      <div className="wrap">
+        <div className="viz">
+          <Visualizer mode="bars" running={playing} height={120} bars={56} />
+        </div>
+        <div className="rack">
+          <div>
+            <div className="cap">rotary</div>
+            <div style={{display:"flex", gap:24}}>
+              <Knob label="density" min={0} max={1} step={0.01} defaultValue={0.62} format={v=>v.toFixed(2)} />
+              <Knob label="gain" min={-60} max={6} defaultValue={-6} format={v=>`${v.toFixed(1)}`} />
+              <Knob label="space" size="sm" defaultValue={40} format={v=>`${v|0}%`} />
+            </div>
+          </div>
+          <div>
+            <div className="cap">faders</div>
+            <div style={{display:"flex", gap:18}}>
+              <Fader label="A" defaultValue={72} />
+              <Fader label="B" defaultValue={48} />
+            </div>
+          </div>
+          <div style={{flex:1, minWidth:220}}>
+            <div className="cap">meters · LEDs</div>
+            <div className="meters">
+              <div className="mrow"><span className="mlbl">main</span><Meter value={0.72} /><span className="mval">−6.0</span></div>
+              <div className="mrow"><span className="mlbl">send</span><Meter value={0.42} /><span className="mval">−14</span></div>
+              <div className="mrow"><span className="mlbl">peak</span><Meter value={0.94} /><span className="mval">−0.6</span></div>
+            </div>
+            <div style={{display:"flex", gap:18, marginTop:14, alignItems:"center"}}>
+              <span style={{display:"flex",gap:7,alignItems:"center"}}><LED tone="green" /><span className="mlbl">armed</span></span>
+              <span style={{display:"flex",gap:7,alignItems:"center"}}><LED tone="blue" /><span className="mlbl">sync</span></span>
+              <span style={{display:"flex",gap:7,alignItems:"center"}}><LED tone="red" on={false} /><span className="mlbl">clip</span></span>
+            </div>
+          </div>
+        </div>
+        <Transport playing={playing} onPlayToggle={()=>setPlaying(p=>!p)}>
+          <span className="hmla-tnum" style={{fontFamily:"var(--font-mono)",fontSize:13,color:"var(--text-hi)",padding:"0 8px"}}>120.00 BPM</span>
+        </Transport>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById("root")).render(<Demo />);
+</script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!-- @template name="Studio Panel" description="Generative-engine starter: visualizer hero, knob rack, transport — built from hmla DS components." -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hmla — studio panel</title>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="./ds-base.js"></script>
+<style>
+  html, body { height: 100%; }
+  body { margin: 0; display: grid; place-items: center; padding: var(--space-8); }
+  .stage { width: 100%; max-width: 880px; display: grid; gap: var(--space-5); }
+  .stage-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4); }
+  .stage-head h1 { font-size: var(--fs-h3); }
+  .stage-head .seed { font-family: var(--font-mono); color: var(--text-muted); font-size: var(--fs-caption); }
+  .knob-rack { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-4); }
+  .foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
+</style>
+</head>
+<body class="hmla-grain">
+<div id="root"></div>
+<script type="text/babel">
+function mountStudioPanel() {
+  const NS = Object.keys(window).find(k => k.startsWith('HmlaDesignSystem_'));
+  if (!NS || !window[NS] || !window[NS].Panel) { return setTimeout(mountStudioPanel, 30); }
+  const { Panel, Visualizer, Knob, Transport, Button, Badge, Tag, LED } = window[NS];
+  const { useState } = React;
+
+  function StudioPanel() {
+    const [playing, setPlaying] = useState(true);
+    return (
+      <div className="stage">
+        <div className="stage-head">
+          <div>
+            <h1>deep field</h1>
+            <span className="seed">generative · evolving · seed 0x4F2A</span>
+          </div>
+          <Button variant="accent">render</Button>
+        </div>
+
+        <Panel tone="well" style={{ padding: 0, overflow: 'hidden' }}>
+          <Visualizer mode="bars" height={140} running={playing} />
+        </Panel>
+
+        <Panel
+          title="generative engine"
+          actions={<Badge tone="accent" dot>live</Badge>}
+        >
+          <div className="knob-rack">
+            <Knob label="density"   min={0} max={1} step={0.01} defaultValue={0.62} />
+            <Knob label="character" min={0} max={100} defaultValue={48} />
+            <Knob label="space"     min={0} max={100} defaultValue={66} unit="%" />
+            <Knob label="drift"     min={0} max={100} defaultValue={22} />
+            <Knob label="lowpass"   min={20} max={20000} defaultValue={8200}
+                  format={v => (v >= 1000 ? (v/1000).toFixed(1) + 'k' : Math.round(v))} />
+          </div>
+        </Panel>
+
+        <div className="foot">
+          <Transport
+            playing={playing}
+            onPlayToggle={() => setPlaying(p => !p)}
+            onStop={() => setPlaying(false)}
+          >
+            <span className="hmla-tnum">03:14 / ∞</span>
+          </Transport>
+          <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+            <Tag>drone</Tag>
+            <Tag>warm</Tag>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<StudioPanel />);
+}
+mountStudioPanel();
+</script>
+</body>
+</html>

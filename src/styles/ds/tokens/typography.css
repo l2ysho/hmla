@@ -1,0 +1,44 @@
+/* hmla — typography
+ * Mono-forward. Two families:
+ *   --font-display : Martian Mono — panel labels, headings, ALL-CAPS readouts
+ *   --font-mono    : JetBrains Mono — body, values, code, long-form
+ * Labels lean uppercase with positive tracking, like silkscreened panel text. */
+
+:root {
+  --font-display: "Martian Mono", "JetBrains Mono", ui-monospace, monospace;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* type scale — technical, tight. rem based on 16px root */
+  --fs-micro: 0.6875rem; /* 11px — tick labels, fine print */
+  --fs-label: 0.75rem; /* 12px — panel labels (uppercase) */
+  --fs-caption: 0.8125rem; /* 13px — captions, meta */
+  --fs-body: 0.9375rem; /* 15px — body */
+  --fs-value: 1.0625rem; /* 17px — readout values */
+  --fs-h6: 1rem; /* 16px */
+  --fs-h5: 1.25rem; /* 20px */
+  --fs-h4: 1.5rem; /* 24px */
+  --fs-h3: 2rem; /* 32px */
+  --fs-h2: 2.75rem; /* 44px */
+  --fs-h1: 3.75rem; /* 60px */
+  --fs-display: 5.5rem; /* 88px — hero numerals */
+
+  /* weights */
+  --fw-light: 300; /* @kind font */
+  --fw-regular: 400; /* @kind font */
+  --fw-medium: 500; /* @kind font */
+  --fw-semibold: 600; /* @kind font */
+  --fw-bold: 700; /* @kind font */
+
+  /* line heights */
+  --lh-tight: 1.05; /* @kind font */
+  --lh-snug: 1.2; /* @kind font */
+  --lh-normal: 1.5; /* @kind font */
+  --lh-relaxed: 1.65; /* @kind font */
+
+  /* letter spacing — panel silkscreen tracking */
+  --ls-display: -0.02em; /* @kind font */
+  --ls-heading: -0.01em; /* @kind font */
+  --ls-body: 0; /* @kind font */
+  --ls-label: 0.14em; /* @kind font */
+  --ls-label-wide: 0.24em; /* @kind font */
+}

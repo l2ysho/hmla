@@ -1,0 +1,26 @@
+<!-- @dsCard group="Colors" viewport="700x160" name="Instrument signals — LEDs" subtitle="meters · status · readouts" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; padding: 26px 28px; background: var(--surface-panel); }
+  .row { display: flex; gap: 26px; flex-wrap: wrap; }
+  .led { display: flex; align-items: center; gap: 11px; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; box-shadow: 0 0 8px currentColor, 0 0 0 1px rgba(255,255,255,0.08) inset; }
+  .lbl { font-family: var(--font-display); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-label); }
+  .hex { font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); }
+  .stack { display: grid; gap: 3px; }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div class="led"><span class="dot" style="background:var(--led-green);color:var(--led-green)"></span><div class="stack"><span class="lbl">ok · armed</span><span class="hex">#5dffb0</span></div></div>
+    <div class="led"><span class="dot" style="background:var(--led-amber);color:var(--led-amber)"></span><div class="stack"><span class="lbl">warn · peak</span><span class="hex">#ffc24b</span></div></div>
+    <div class="led"><span class="dot" style="background:var(--led-red);color:var(--led-red)"></span><div class="stack"><span class="lbl">clip · error</span><span class="hex">#ff4d4d</span></div></div>
+    <div class="led"><span class="dot" style="background:var(--led-blue);color:var(--led-blue)"></span><div class="stack"><span class="lbl">sync · midi</span><span class="hex">#5b9dff</span></div></div>
+    <div class="led"><span class="dot" style="background:var(--led-cyan);color:var(--led-cyan)"></span><div class="stack"><span class="lbl">info</span><span class="hex">#4be0e0</span></div></div>
+  </div>
+</body>
+</html>
