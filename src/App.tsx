@@ -12,6 +12,7 @@ import { SignalMark } from "./components/SignalMark";
 import { buildEngine } from "./engine/buildEngine";
 import { PRESETS, VOICE_COLORS } from "./engine/constants";
 import { makeRng } from "./engine/prng";
+import { decodeEngine, encodeEngine } from "./engine/share";
 import { useVisual } from "./engine/useVisual";
 import type { EngineEvent, EngineHandle, Params } from "./types";
 
@@ -46,7 +47,30 @@ interface StoredPatch {
   theme: "dark" | "light";
 }
 
-function loadPatch(): StoredPatch {
+// Each seed deterministically maps to one of the presets via an independent
+// PRNG stream, so a given seed always implies the same starting mix.
+const PRESET_NAMES = Object.keys(PRESETS);
+function presetForSeed(seed: string): string {
+  return PRESET_NAMES[Math.floor(makeRng(`${seed}-preset`)() * PRESET_NAMES.length)];
+}
+// the full param set a seed implies (its preset, over the defaults)
+function paramsForSeed(seed: string): Params {
+  return { ...DEFAULT_PARAMS, ...PRESETS[presetForSeed(seed)] };
+}
+// name of the preset whose values exactly match these params, else null
+function matchPreset(p: Params): string | null {
+  for (const [name, preset] of Object.entries(PRESETS)) {
+    const ok = (Object.keys(preset) as (keyof Params)[]).every((k) =>
+      typeof preset[k] === "number" && typeof p[k] === "number"
+        ? Math.round((preset[k] as number) * 100) === Math.round((p[k] as number) * 100)
+        : preset[k] === p[k],
+    );
+    if (ok) return name;
+  }
+  return null;
+}
+
+function readStored(): StoredPatch {
   const fallback: StoredPatch = {
     params: DEFAULT_PARAMS,
     seed: `hmla-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -66,15 +90,24 @@ function loadPatch(): StoredPatch {
   }
 }
 
-function fmt(s: number) {
-  return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+// Share/restore order: URL wins, then localStorage, then defaults.
+//   ?e present → exact shared mix; ?s only → that seed's preset.
+function loadPatch(): StoredPatch {
+  const stored = readStored();
+  const q = new URLSearchParams(window.location.search);
+  const urlSeed = q.get("s");
+  const urlEng = q.get("e");
+  const seed = urlSeed ?? stored.seed;
+  const params = urlEng
+    ? (decodeEngine(urlEng) ?? stored.params)
+    : urlSeed
+      ? paramsForSeed(urlSeed)
+      : stored.params;
+  return { params, seed, theme: stored.theme };
 }
 
-// Each seed deterministically maps to one of the presets via an independent
-// PRNG stream, so a given seed always implies the same starting mix.
-const PRESET_NAMES = Object.keys(PRESETS);
-function presetForSeed(seed: string): string {
-  return PRESET_NAMES[Math.floor(makeRng(`${seed}-preset`)() * PRESET_NAMES.length)];
+function fmt(s: number) {
+  return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 }
 
 export default function App() {
@@ -88,7 +121,7 @@ export default function App() {
   const [recording, setRecording] = useState(false);
   const [recSecs, setRecSecs] = useState(0);
   const [canRecord, setCanRecord] = useState(true);
-  const [activePreset, setActivePreset] = useState<string | null>(null);
+  const [activePreset, setActivePreset] = useState<string | null>(() => matchPreset(params));
   const [elapsed, setElapsed] = useState(0);
   const [character, setCharacter] = useState<string | null>(null);
 
@@ -109,6 +142,12 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ params, seed, theme }));
   }, [params, seed, theme]);
+
+  // keep the address bar a live, shareable link to the current patch
+  useEffect(() => {
+    const q = new URLSearchParams({ s: seed, e: encodeEngine(params) });
+    window.history.replaceState(null, "", `${window.location.pathname}?${q}`);
+  }, [params, seed]);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
