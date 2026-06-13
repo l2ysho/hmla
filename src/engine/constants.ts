@@ -22,32 +22,69 @@ export interface Scale {
   notes: string[];
 }
 
-export const SCALES: Scale[] = [
-  {
-    name: "D mol pent",
-    sub: ["D1", "A1"],
-    chord: ["D3", "F3", "A3", "C4", "G4"],
-    notes: ["D2", "F2", "G2", "A2", "C3", "D3", "F3", "G3", "A3", "C4", "D4", "F4", "G4", "A4"],
-  },
-  {
-    name: "A mol pent",
-    sub: ["A1", "E1"],
-    chord: ["A2", "C3", "E3", "G3", "D4"],
-    notes: ["A2", "C3", "D3", "E3", "G3", "A3", "C4", "D4", "E4", "G4", "A4"],
-  },
-  {
-    name: "F dur pent",
-    sub: ["F1", "C2"],
-    chord: ["F3", "A3", "C4", "D4", "G4"],
-    notes: ["F2", "G2", "A2", "C3", "D3", "F3", "G3", "A3", "C4", "D4", "F4", "G4"],
-  },
-  {
-    name: "C dur pent",
-    sub: ["C1", "G1"],
-    chord: ["C3", "E3", "G3", "A3", "D4"],
-    notes: ["C2", "D2", "E2", "G2", "A2", "C3", "D3", "E3", "G3", "A3", "C4", "D4", "E4", "G4"],
-  },
+// --- scale generation ---------------------------------------------------
+// Scales are generated from a root + interval pattern so the pool can be wide
+// without hand-listing every note. The mode set is curated to stay calm and
+// consonant — no Phrygian/Locrian/harmonic-minor tension — but spans real mood
+// (bright Lydian, melancholy Aeolian, warm Dorian, contemplative Japanese).
+const CHROMA = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
+const spell = (rootSemi: number, baseOct: number, add: number): string => {
+  const total = rootSemi + add;
+  return `${CHROMA[((total % 12) + 12) % 12]}${baseOct + Math.floor(total / 12)}`;
+};
+
+// semitone patterns within one octave
+const MODES: Record<string, number[]> = {
+  "min pent": [0, 3, 5, 7, 10],
+  "maj pent": [0, 2, 4, 7, 9],
+  dorian: [0, 2, 3, 5, 7, 9, 10],
+  lydian: [0, 2, 4, 6, 7, 9, 11],
+  mixolydian: [0, 2, 4, 5, 7, 9, 10],
+  aeolian: [0, 2, 3, 5, 7, 8, 10],
+  hirajoshi: [0, 2, 3, 7, 8],
+  kumoi: [0, 2, 3, 7, 9],
+  "sus/quartal": [0, 2, 5, 7, 10],
+};
+
+const buildScale = (root: string, baseOct: number, mode: string): Scale => {
+  const rootSemi = CHROMA.indexOf(root);
+  const intervals = MODES[mode];
+  const notes: string[] = [];
+  for (let o = 0; o < 3; o++)
+    for (const iv of intervals) notes.push(spell(rootSemi, baseOct + o, iv));
+  const deg = (k: number) =>
+    intervals[k % intervals.length] + 12 * Math.floor(k / intervals.length);
+  return {
+    name: `${root} ${mode}`,
+    sub: [spell(rootSemi, baseOct - 1, 0), spell(rootSemi, baseOct - 1, 7)],
+    chord: [
+      spell(rootSemi, baseOct + 1, deg(0)),
+      spell(rootSemi, baseOct + 1, deg(2)),
+      spell(rootSemi, baseOct + 1, deg(4)),
+      spell(rootSemi, baseOct + 2, deg(0)),
+    ],
+    notes,
+  };
+};
+
+// roots vary the tonal centre; each seed wanders a fixed subset (see buildEngine)
+const SCALE_SPECS: [string, string][] = [
+  ["D", "min pent"],
+  ["A", "min pent"],
+  ["F", "maj pent"],
+  ["C", "maj pent"],
+  ["D", "dorian"],
+  ["G", "lydian"],
+  ["C", "lydian"],
+  ["A", "aeolian"],
+  ["E", "mixolydian"],
+  ["D", "hirajoshi"],
+  ["A", "kumoi"],
+  ["G", "sus/quartal"],
 ];
+
+export const SCALES: Scale[] = SCALE_SPECS.map(([root, mode]) => buildScale(root, 2, mode));
 
 export const PRESETS: Record<string, Omit<Params, "lofi"> & { lofi: number }> = {
   calm: {

@@ -5,7 +5,6 @@ import { Fader } from "./components/ds/Fader";
 import { IconButton } from "./components/ds/IconButton";
 import { Input } from "./components/ds/Input";
 import { LED } from "./components/ds/LED";
-import { Panel } from "./components/ds/Panel";
 import { Switch } from "./components/ds/Switch";
 import { Tag } from "./components/ds/Tag";
 import { Transport } from "./components/ds/Transport";
@@ -196,137 +195,143 @@ export default function App() {
     setPatch((s) => ({ ...s, theme: s.theme === "dark" ? "light" : "dark" }));
 
   return (
-    <div className="app hmla-grain">
-      <header className="app__head">
-        <div>
-          <div className="lockup">
-            <h1 className="wordmark">hmla</h1>
-            <SignalMark className="signalmark" />
-          </div>
-          <p className="tagline">generative ambient — seeded, ever-evolving</p>
-        </div>
-        <div className="head-tools">
-          <Badge tone={playing ? "accent" : "default"} dot>
-            {playing ? "live" : "idle"}
-          </Badge>
-          <Button variant="ghost" size="sm" onClick={toggleTheme}>
-            {theme === "dark" ? "light" : "dark"}
-          </Button>
-        </div>
-      </header>
+    <div className="stage">
+      <div className="chassis hmla-grain">
+        <span className="chassis__screw chassis__screw--tl" aria-hidden="true" />
+        <span className="chassis__screw chassis__screw--tr" aria-hidden="true" />
+        <span className="chassis__screw chassis__screw--bl" aria-hidden="true" />
+        <span className="chassis__screw chassis__screw--br" aria-hidden="true" />
 
-      {err ? (
-        <p className="error">
-          <span className="error__label">signal error</span> {err}
-        </p>
-      ) : null}
-
-      <Panel tone="well" className="vizpanel">
-        <canvas ref={canvasRef} className="scope" />
-      </Panel>
-
-      <div className="statusrow">
-        <div className="statusrow__tags">
-          <Tag>
-            <LED tone="cyan" on={playing} size={8} /> {keyName}
-          </Tag>
-          <Tag>
-            <LED tone="accent" on={playing && params.pulse > 0.03} size={8} />{" "}
-            {bpm ? `${bpm} bpm` : "—"}
-          </Tag>
-          <span className="sep" />
-          {lastNotes.map((n, i) => (
-            <Tag key={i} className="voicenote">
-              <LED tone={VOICE_COLORS[i]} on={playing} size={8} /> {n}
-            </Tag>
-          ))}
-        </div>
-        <IconButton
-          aria-label="record"
-          className="recbtn"
-          active={recording}
-          onClick={recording ? stopRec : startRec}
-          disabled={!playing || !canRecord}
-          title={canRecord ? "record output as WAV" : "recording is unavailable in this browser"}
-        >
-          <span className="recbtn__dot" />
-          <span className="hmla-tnum">{recording ? fmt(recSecs) : "rec"}</span>
-        </IconButton>
-      </div>
-
-      <Panel
-        title="engine"
-        actions={
-          <Badge tone="accent" dot>
-            live
-          </Badge>
-        }
-      >
-        <div className="rack">
-          {CHANNELS.map((c) => (
-            <div className="ch" key={c.key}>
-              <LED tone={c.tone} on={playing} size={9} />
-              <Fader
-                label={c.label}
-                min={0}
-                max={1}
-                step={0.01}
-                value={params[c.key]}
-                onChange={(v) => setParam(c.key, v)}
-              />
-              <span className="ch__val hmla-tnum">{Math.round(params[c.key] * 100)}</span>
+        <header className="chassis__head">
+          <div className="brand">
+            <div className="lockup">
+              <h1 className="wordmark">hmla</h1>
+              <SignalMark className="signalmark" />
             </div>
-          ))}
-        </div>
-      </Panel>
+            <p className="tagline">generative ambient — seeded, ever-evolving</p>
+          </div>
+          <div className="head-tools">
+            <Badge tone={playing ? "accent" : "default"} dot>
+              {playing ? "live" : "idle"}
+            </Badge>
+            <Button variant="ghost" size="sm" onClick={toggleTheme}>
+              {theme === "dark" ? "light" : "dark"}
+            </Button>
+          </div>
+        </header>
 
-      <div className="footrow">
-        <div className="presets">
-          {Object.keys(PRESETS).map((name) => (
-            <Tag
-              key={name}
-              className="preset"
-              data-active={activePreset === name ? "true" : "false"}
-              role="button"
-              tabIndex={0}
-              onClick={() => applyPreset(name)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  applyPreset(name);
-                }
-              }}
+        {err ? (
+          <p className="error">
+            <span className="error__label">signal error</span> {err}
+          </p>
+        ) : null}
+
+        <div className="controlbar">
+          <Transport playing={playing} onPlayToggle={toggle} onStop={stop} showSkip={false}>
+            <span className="hmla-tnum tport-time">{fmt(elapsed)}</span>
+            <span className="tport-seed hmla-tnum">{seed}</span>
+          </Transport>
+        </div>
+
+        <div className="screen">
+          <canvas ref={canvasRef} className="scope" />
+          <div className="screen__strip">
+            <div className="screen__tags">
+              <Tag>
+                <LED tone="cyan" on={playing} size={8} /> {keyName}
+              </Tag>
+              <Tag>
+                <LED tone="accent" on={playing && params.pulse > 0.03} size={8} />{" "}
+                {bpm ? `${bpm} bpm` : "—"}
+              </Tag>
+              <span className="sep" />
+              {lastNotes.map((n, i) => (
+                <Tag key={i} className="voicenote">
+                  <LED tone={VOICE_COLORS[i]} on={playing} size={8} /> {n}
+                </Tag>
+              ))}
+            </div>
+            <IconButton
+              aria-label="record"
+              className="recbtn"
+              active={recording}
+              onClick={recording ? stopRec : startRec}
+              disabled={!playing || !canRecord}
+              title={
+                canRecord ? "record output as WAV" : "recording is unavailable in this browser"
+              }
             >
-              {name}
-            </Tag>
-          ))}
-          <Switch
-            className="shimmer-toggle"
-            checked={params.shimmer}
-            onChange={(v) => setParam("shimmer", v)}
-            label="shimmer"
-          />
+              <span className="recbtn__dot" />
+              <span className="hmla-tnum">{recording ? fmt(recSecs) : "rec"}</span>
+            </IconButton>
+          </div>
         </div>
-        <div className="seedbox">
-          <span className="hmla-field__label">seed</span>
-          <Input
-            value={seed}
-            onChange={(e) => setSeed(e.target.value)}
-            disabled={playing}
-            spellCheck={false}
-            className="seedbox__input hmla-tnum"
-          />
-          <IconButton aria-label="regenerate seed" onClick={reseed} disabled={playing}>
-            ↻
-          </IconButton>
-        </div>
-      </div>
 
-      <div className="transportbar">
-        <Transport playing={playing} onPlayToggle={toggle} onStop={stop} showSkip={false}>
-          <span className="hmla-tnum tport-time">{fmt(elapsed)}</span>
-          <span className="tport-seed hmla-tnum">{seed}</span>
-        </Transport>
+        <section className="module">
+          <div className="module__head">
+            <span className="hmla-label">engine</span>
+            <Badge tone="accent" dot>
+              live
+            </Badge>
+          </div>
+          <div className="rack">
+            {CHANNELS.map((c) => (
+              <div className="ch" key={c.key}>
+                <LED tone={c.tone} on={playing} size={9} />
+                <Fader
+                  label={c.label}
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={params[c.key]}
+                  onChange={(v) => setParam(c.key, v)}
+                />
+                <span className="ch__val hmla-tnum">{Math.round(params[c.key] * 100)}</span>
+              </div>
+            ))}
+          </div>
+          <div className="module__aux">
+            <Switch
+              checked={params.shimmer}
+              onChange={(v) => setParam("shimmer", v)}
+              label="shimmer"
+              title="octave-up reverb halo — adds a bright, airy tail above the drone"
+            />
+            <span className="aux__hint">octave-up reverb halo</span>
+          </div>
+        </section>
+
+        <section className="module module--row">
+          <div className="presets">
+            <span className="hmla-label presets__label">preset</span>
+            {Object.keys(PRESETS).map((name) => (
+              <button
+                key={name}
+                type="button"
+                className="preset"
+                data-active={activePreset === name ? "true" : "false"}
+                onClick={() => applyPreset(name)}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+          <div className="seedbox">
+            <span className="hmla-field__label">seed</span>
+            <Input
+              value={seed}
+              onChange={(e) => setSeed(e.target.value)}
+              disabled={playing}
+              spellCheck={false}
+              maxLength={9}
+              className="seedbox__input hmla-tnum"
+            />
+            <IconButton aria-label="regenerate seed" onClick={reseed} disabled={playing}>
+              ↻
+            </IconButton>
+          </div>
+        </section>
+
         <p className="hint">
           {playing
             ? "patch running — pulse at zero stays pure ambient, higher values bring in the rhythm"

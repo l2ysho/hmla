@@ -1,16 +1,25 @@
-/* layout only — all visual style comes from the design system */
+/* hmla — app shell. Layout + the single-enclosure "one piece of hardware"
+ * chassis. All color/type/depth comes from the design-system tokens. */
 html,
 body {
   height: 100%;
 }
 body {
   margin: 0;
-  background: var(--surface-page);
+  /* faint desk vignette so the unit reads as a device sitting on a surface */
+  background:
+    radial-gradient(
+      130% 90% at 50% -10%,
+      color-mix(in oklab, var(--surface-raised) 35%, transparent),
+      transparent 55%
+    ),
+    var(--surface-page);
   color: var(--text-body);
   font-family: var(--font-mono);
+  min-height: 100%;
   display: grid;
-  place-items: center;
-  padding: clamp(16px, 3vw, 40px);
+  place-items: start center;
+  padding: clamp(16px, 3vw, 48px);
   box-sizing: border-box;
 }
 *,
@@ -19,19 +28,103 @@ body {
   box-sizing: border-box;
 }
 
-.app {
+.stage {
   width: 100%;
-  max-width: 900px;
-  display: grid;
-  gap: clamp(14px, 2vw, 22px);
+  max-width: 760px;
 }
 
-/* header */
-.app__head {
+/* ============================== THE CHASSIS ==============================
+ * One raised faceplate. Functional zones are divided by engraved hairline
+ * seams rather than floating in separate cards — it should feel milled from
+ * a single block, not assembled from widgets. */
+.chassis {
+  position: relative;
+  display: grid;
+  gap: clamp(16px, 2vw, 22px);
+  padding: clamp(20px, 2.6vw, 32px);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--surface-raised) 88%, white 12%),
+    var(--surface-raised) 26%,
+    var(--surface-panel)
+  );
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-2xl);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    var(--shadow-lg),
+    var(--shadow-pop);
+}
+
+/* corner fixing screws */
+.chassis__screw {
+  position: absolute;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, var(--surface-control), var(--ink-900) 82%);
+  box-shadow:
+    inset 0 0 0 1px var(--line-strong),
+    inset 0 1px 2px rgba(0, 0, 0, 0.6),
+    0 1px 0 rgba(255, 255, 255, 0.05);
+}
+.chassis__screw::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 7px;
+  height: 1.5px;
+  background: var(--line-engraved);
+  border-radius: 1px;
+}
+.chassis__screw--tl {
+  top: 11px;
+  left: 11px;
+}
+.chassis__screw--tl::after {
+  transform: rotate(28deg);
+}
+.chassis__screw--tr {
+  top: 11px;
+  right: 11px;
+}
+.chassis__screw--tr::after {
+  transform: rotate(-42deg);
+}
+.chassis__screw--bl {
+  bottom: 11px;
+  left: 11px;
+}
+.chassis__screw--bl::after {
+  transform: rotate(-18deg);
+}
+.chassis__screw--br {
+  bottom: 11px;
+  right: 11px;
+}
+.chassis__screw--br::after {
+  transform: rotate(50deg);
+}
+
+/* engraved seam between zones */
+.controlbar,
+.screen,
+.module,
+.hint {
+  position: relative;
+  padding-top: clamp(16px, 2vw, 22px);
+  border-top: 1px solid var(--line-soft);
+  box-shadow: 0 -1px 0 var(--line-engraved);
+}
+
+/* ---- brand plate (top of the faceplate) ---- */
+.chassis__head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-5);
+  padding: var(--space-1) var(--space-1) 0;
 }
 .lockup {
   display: flex;
@@ -42,20 +135,20 @@ body {
   margin: 0;
   font-family: var(--font-display);
   font-weight: var(--fw-bold);
-  font-size: clamp(34px, 5vw, 48px);
+  font-size: clamp(30px, 4.4vw, 44px);
   letter-spacing: 0.16em;
   color: var(--text-hi);
   line-height: 1;
 }
 .signalmark {
-  height: clamp(22px, 3.4vw, 32px);
+  height: clamp(20px, 3vw, 30px);
   width: auto;
   color: var(--accent);
   filter: drop-shadow(0 0 6px var(--accent-glow));
   flex: none;
 }
 .tagline {
-  margin: 12px 0 0;
+  margin: 10px 0 0;
   font-size: var(--fs-caption);
   letter-spacing: 0.03em;
   color: var(--text-faint);
@@ -68,23 +161,7 @@ body {
   flex: none;
 }
 
-/* visualizer panel */
-.vizpanel .hmla-panel__body {
-  padding: 0;
-  overflow: hidden;
-  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-}
-.vizpanel .hmla-panel__head {
-  border-bottom: 1px solid var(--line-hairline);
-}
-.scope {
-  width: 100%;
-  height: 170px;
-  display: block;
-  background: var(--surface-well);
-}
-
-/* error banner */
+/* ---- error banner ---- */
 .error {
   margin: 0;
   padding: var(--space-2) var(--space-3);
@@ -104,33 +181,43 @@ body {
   margin-right: var(--space-1);
 }
 
-/* status strip */
-.statusrow {
+/* ---- the display screen (recessed visualizer + readout strip) ---- */
+.screen {
+  display: grid;
+  gap: var(--space-3);
+}
+.scope {
+  width: 100%;
+  height: clamp(150px, 22vw, 180px);
+  display: block;
+  background: var(--surface-well);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  box-shadow:
+    var(--shadow-well),
+    inset 0 0 40px rgba(0, 0, 0, 0.35);
+}
+.screen__strip {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
   flex-wrap: wrap;
 }
-.statusrow__tags {
+.screen__tags {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   flex-wrap: wrap;
 }
-.statusrow__tags .hmla-tag {
+.screen__tags .hmla-tag {
   white-space: nowrap;
 }
-.statusrow .sep {
+.screen .sep {
   width: 1px;
   height: 18px;
   background: var(--line-hairline);
   margin: 0 var(--space-1);
-}
-
-/* voice-note readouts: live, non-interactive */
-.hmla-tag.voicenote {
-  white-space: nowrap;
 }
 
 /* rec button — DS IconButton widened to hold a label */
@@ -164,14 +251,29 @@ body {
   }
 }
 
-/* engine fader rack — 8 channels (density, bright, space, chaos,
-   grain, sub, pulse, lofi) */
+/* ---- a module zone on the faceplate ---- */
+.module {
+  display: grid;
+  gap: var(--space-4);
+}
+.module__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.module--row {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+/* engine fader rack — 8 channels in a single row */
 .rack {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: clamp(6px, 1.4vw, 18px);
+  grid-template-columns: repeat(8, 1fr);
+  gap: clamp(4px, 0.8vw, 12px);
   justify-items: center;
-  padding: var(--space-2) 0 0;
 }
 .ch {
   display: grid;
@@ -183,44 +285,89 @@ body {
   color: var(--text-hi);
 }
 .ch .hmla-fader__track {
-  height: clamp(150px, 22vw, 190px);
+  height: clamp(130px, 16vw, 170px);
 }
 
-/* presets + seed + shimmer */
-.footrow {
+/* shimmer — labeled instrument toggle with inline explanation */
+.module__aux {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-5);
-  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line-soft);
 }
+.aux__hint {
+  font-size: var(--fs-caption);
+  color: var(--text-faint);
+  letter-spacing: 0.02em;
+}
+
+/* ---- presets: hardware selector buttons with a lit active state ---- */
 .presets {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   flex-wrap: wrap;
 }
-.presets .hmla-tag {
+.presets__label {
+  margin-right: var(--space-1);
+}
+.preset {
+  height: var(--control-h-sm);
+  padding: 0 var(--space-3);
+  font-family: var(--font-display);
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
   white-space: nowrap;
+  color: var(--text-muted);
+  background: var(--surface-control);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--bevel-raised);
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
 }
-.presets .hmla-switch {
-  margin-left: var(--space-2);
+.preset:hover {
+  color: var(--text-hi);
+  background: var(--surface-control-hover);
+  border-color: var(--ink-500);
 }
+.preset:active {
+  transform: translateY(1px);
+  box-shadow: var(--shadow-inset);
+}
+.preset:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+.preset[data-active="true"] {
+  color: var(--accent);
+  background: var(--accent-tint);
+  border-color: var(--accent);
+  box-shadow: var(--glow-accent);
+}
+
+/* seed entry */
 .seedbox {
   display: flex;
   align-items: center;
   gap: var(--space-2);
 }
 .seedbox__input.hmla-input {
-  width: 140px;
+  width: 132px;
 }
 
-/* transport */
-.transportbar {
-  display: grid;
-  justify-items: center;
-  gap: var(--space-3);
-  margin-top: var(--space-1);
+/* ---- transport control bar (top) ---- */
+.controlbar {
+  display: flex;
+  justify-content: center;
 }
 .tport-time {
   font-size: var(--fs-body);
@@ -247,17 +394,14 @@ body {
     white-space: normal;
   }
   .rack {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     row-gap: var(--space-6);
   }
-  .footrow {
-    flex-direction: column;
-    align-items: stretch;
+  .module--row {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
   }
   .tport-seed {
-    display: none;
-  }
-  .shimmer-toggle {
     display: none;
   }
 }
