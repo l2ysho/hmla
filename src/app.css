@@ -50,8 +50,12 @@ body {
   );
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-2xl);
+  /* lift the faceplate clearly off the desk: crisp top highlight, a milled
+   * inner rim, then stacked drop shadows */
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.025),
+    0 1px 0 rgba(255, 255, 255, 0.04),
     var(--shadow-lg),
     var(--shadow-pop);
 }
@@ -107,10 +111,9 @@ body {
   transform: rotate(50deg);
 }
 
-/* engraved seam between zones */
+/* engraved seam between lightweight zones (no pocket of their own) */
 .controlbar,
 .screen,
-.module,
 .hint {
   position: relative;
   padding-top: clamp(16px, 2vw, 22px);
@@ -186,6 +189,9 @@ body {
   display: grid;
   gap: var(--space-3);
 }
+.screen__display {
+  position: relative;
+}
 .scope {
   width: 100%;
   height: clamp(150px, 22vw, 180px);
@@ -193,9 +199,27 @@ body {
   background: var(--surface-well);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-md);
+  /* deep recessed glass: hard inset well + a darkened vignette, with a thin
+   * lower lip highlight where the bezel meets the faceplate */
   box-shadow:
     var(--shadow-well),
-    inset 0 0 40px rgba(0, 0, 0, 0.35);
+    inset 0 2px 10px rgba(0, 0, 0, 0.6),
+    inset 0 0 48px rgba(0, 0, 0, 0.45),
+    0 1px 0 rgba(255, 255, 255, 0.05);
+}
+/* seed character readout — instrument · space · groove, like a preset name
+   printed on the instrument's display */
+.screen__char {
+  position: absolute;
+  left: var(--space-3);
+  bottom: var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  pointer-events: none;
+  z-index: 2;
 }
 .screen__strip {
   display: flex;
@@ -251,10 +275,20 @@ body {
   }
 }
 
-/* ---- a module zone on the faceplate ---- */
+/* ---- a module: a pocket routed into the faceplate ----
+ * recessed one plane below the brand/transport so the controls sit in a
+ * machined well. inset well-shadow sinks it; the lower catch-light is the
+ * faceplate's bottom lip catching room light. */
 .module {
   display: grid;
   gap: var(--space-4);
+  padding: clamp(15px, 2.1vw, 22px);
+  background: linear-gradient(180deg, var(--surface-well), var(--surface-panel));
+  border: 1px solid var(--line-engraved);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    var(--shadow-well),
+    0 1px 0 rgba(255, 255, 255, 0.045);
 }
 .module__head {
   display: flex;

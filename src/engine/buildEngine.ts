@@ -553,6 +553,7 @@ export async function buildEngine(
 
   const groove = tPick(GROOVES);
   const steps = groove.steps;
+  emit({ type: "character", instrument: arch.name, space: space.name, groove: groove.name });
   const bpm = Math.round(groove.bpm[0] + rrnd() * (groove.bpm[1] - groove.bpm[0]));
   try {
     Tone.Transport.stop();

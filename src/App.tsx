@@ -82,6 +82,7 @@ export default function App() {
   const [canRecord, setCanRecord] = useState(true);
   const [activePreset, setActivePreset] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState(0);
+  const [character, setCharacter] = useState<string | null>(null);
 
   const paramsRef = useRef(params);
   paramsRef.current = params;
@@ -141,6 +142,8 @@ export default function App() {
             setKeyName(ev.name);
           } else if (ev.type === "bpm") {
             setBpm(ev.value);
+          } else if (ev.type === "character") {
+            setCharacter(`${ev.instrument} · ${ev.space} · ${ev.groove}`);
           }
         },
       );
@@ -189,7 +192,10 @@ export default function App() {
     setActivePreset(name);
     setPatch((s) => ({ ...s, params: { ...s.params, ...PRESETS[name] } }));
   };
-  const setSeed = (next: string) => setPatch((s) => ({ ...s, seed: next }));
+  const setSeed = (next: string) => {
+    setCharacter(null); // character is only known once the engine for this seed builds
+    setPatch((s) => ({ ...s, seed: next }));
+  };
   const reseed = () => setSeed(`hmla-${Math.floor(1000 + Math.random() * 9000)}`);
   const toggleTheme = () =>
     setPatch((s) => ({ ...s, theme: s.theme === "dark" ? "light" : "dark" }));
@@ -234,7 +240,10 @@ export default function App() {
         </div>
 
         <div className="screen">
-          <canvas ref={canvasRef} className="scope" />
+          <div className="screen__display">
+            <canvas ref={canvasRef} className="scope" />
+            <span className="screen__char">{character ?? "—"}</span>
+          </div>
           <div className="screen__strip">
             <div className="screen__tags">
               <Tag>
@@ -270,9 +279,6 @@ export default function App() {
         <section className="module">
           <div className="module__head">
             <span className="hmla-label">engine</span>
-            <Badge tone="accent" dot>
-              live
-            </Badge>
           </div>
           <div className="rack">
             {CHANNELS.map((c) => (

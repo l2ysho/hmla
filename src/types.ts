@@ -17,6 +17,7 @@ export type EngineEvent =
   | { type: "hit"; track: "boom" | "pluck" | "shaker" | "ping" }
   | { type: "key"; name: string }
   | { type: "bpm"; value: number }
+  | { type: "character"; instrument: string; space: string; groove: string }
   | { type: "pattern" };
 
 export interface EngineHandle {

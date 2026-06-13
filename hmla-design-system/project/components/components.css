@@ -225,6 +225,12 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-3);
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
   cursor: pointer;
   user-select: none;
 }
