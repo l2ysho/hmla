@@ -143,9 +143,13 @@ export default function App() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ params, seed, theme }));
   }, [params, seed, theme]);
 
-  // keep the address bar a live, shareable link to the current patch
+  // keep the address bar a live, shareable link to the current patch. drop ?e
+  // while the mix still equals what the seed implies — it's only needed once
+  // the user actually edits a fader away from the seed's preset.
   useEffect(() => {
-    const q = new URLSearchParams({ s: seed, e: encodeEngine(params) });
+    const q = new URLSearchParams({ s: seed });
+    const e = encodeEngine(params);
+    if (e !== encodeEngine(paramsForSeed(seed))) q.set("e", e);
     window.history.replaceState(null, "", `${window.location.pathname}?${q}`);
   }, [params, seed]);
 
