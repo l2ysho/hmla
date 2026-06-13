@@ -11,6 +11,7 @@ import { Transport } from "./components/ds/Transport";
 import { SignalMark } from "./components/SignalMark";
 import { buildEngine } from "./engine/buildEngine";
 import { PRESETS, VOICE_COLORS } from "./engine/constants";
+import { makeRng } from "./engine/prng";
 import { useVisual } from "./engine/useVisual";
 import type { EngineEvent, EngineHandle, Params } from "./types";
 
@@ -67,6 +68,13 @@ function loadPatch(): StoredPatch {
 
 function fmt(s: number) {
   return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+}
+
+// Each seed deterministically maps to one of the presets via an independent
+// PRNG stream, so a given seed always implies the same starting mix.
+const PRESET_NAMES = Object.keys(PRESETS);
+function presetForSeed(seed: string): string {
+  return PRESET_NAMES[Math.floor(makeRng(`${seed}-preset`)() * PRESET_NAMES.length)];
 }
 
 export default function App() {
@@ -196,7 +204,16 @@ export default function App() {
     setCharacter(null); // character is only known once the engine for this seed builds
     setPatch((s) => ({ ...s, seed: next }));
   };
-  const reseed = () => setSeed(`hmla-${Math.floor(1000 + Math.random() * 9000)}`);
+  // commit a seed and snap the mix to the preset that seed maps to (used by
+  // reseed + the seed field's blur/Enter — not per keystroke, so faders don't
+  // thrash while typing)
+  const commitSeed = (next: string) => {
+    const name = presetForSeed(next);
+    setActivePreset(name);
+    setCharacter(null);
+    setPatch((s) => ({ ...s, seed: next, params: { ...s.params, ...PRESETS[name] } }));
+  };
+  const reseed = () => commitSeed(`hmla-${Math.floor(1000 + Math.random() * 9000)}`);
   const toggleTheme = () =>
     setPatch((s) => ({ ...s, theme: s.theme === "dark" ? "light" : "dark" }));
 
@@ -327,6 +344,10 @@ export default function App() {
             <Input
               value={seed}
               onChange={(e) => setSeed(e.target.value)}
+              onBlur={(e) => commitSeed(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+              }}
               disabled={playing}
               spellCheck={false}
               maxLength={9}
