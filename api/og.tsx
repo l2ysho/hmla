@@ -15,16 +15,24 @@ const INK_100 = "#e8e7e3";
 const INK_400 = "#6b6b75";
 const ACCENT = "#ff5c38";
 
-// hmla signal mark — the lemniscate brand glyph (src/components/SignalMark.tsx),
+// hmla signal mark — the waveform brand glyph (src/components/SignalMark.tsx),
 // inlined here since the edge runtime renders via Satori, not React/CSS.
+const BAR_HEIGHTS = [24, 40, 56, 32, 16];
+const BAR_WIDTH = 10;
+const BAR_GAP = 14;
 const SignalMark = ({ size }: { size: number }) => (
   <svg width={size} height={(size * 64) / 120} viewBox="0 0 120 64" fill="none">
-    <path
-      d="M60 32 C60 14, 86 14, 86 32 C86 50, 60 50, 60 32 C60 14, 34 14, 34 32 C34 50, 60 50, 60 32 Z"
-      stroke={ACCENT}
-      strokeWidth="3"
-    />
-    <circle cx="60" cy="32" r="3.4" fill={ACCENT} />
+    {BAR_HEIGHTS.map((h, i) => (
+      <rect
+        key={i}
+        x={7 + i * (BAR_WIDTH + BAR_GAP)}
+        y={32 - h / 2}
+        width={BAR_WIDTH}
+        height={h}
+        rx={5}
+        fill={ACCENT}
+      />
+    ))}
   </svg>
 );
 
