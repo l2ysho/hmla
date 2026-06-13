@@ -15,6 +15,19 @@ const INK_100 = "#e8e7e3";
 const INK_400 = "#6b6b75";
 const ACCENT = "#ff5c38";
 
+// hmla signal mark — the lemniscate brand glyph (src/components/SignalMark.tsx),
+// inlined here since the edge runtime renders via Satori, not React/CSS.
+const SignalMark = ({ size }: { size: number }) => (
+  <svg width={size} height={(size * 64) / 120} viewBox="0 0 120 64" fill="none">
+    <path
+      d="M60 32 C60 14, 86 14, 86 32 C86 50, 60 50, 60 32 C60 14, 34 14, 34 32 C34 50, 60 50, 60 32 Z"
+      stroke={ACCENT}
+      strokeWidth="3"
+    />
+    <circle cx="60" cy="32" r="3.4" fill={ACCENT} />
+  </svg>
+);
+
 export default function handler(req: Request) {
   const { searchParams } = new URL(req.url);
   const seed = (searchParams.get("s") || "hmla").slice(0, 9);
@@ -29,43 +42,39 @@ export default function handler(req: Request) {
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "space-between",
-        padding: "64px",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "28px",
         background: `linear-gradient(180deg, ${INK_850}, ${INK_900})`,
         color: INK_100,
         fontFamily: "monospace",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-        <span style={{ fontSize: 56, fontWeight: 700, letterSpacing: "0.16em" }}>hmla</span>
-        <span style={{ fontSize: 40, color: ACCENT }}>&#8734;&#8734;</span>
-      </div>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
-        <span style={{ fontSize: 88, fontWeight: 700, letterSpacing: "0.04em" }}>{seed}</span>
-        <span style={{ fontSize: 32, color: INK_400, letterSpacing: "0.08em" }}>
-          {arch.name} &middot; {space.name} &middot; {groove.name}
-        </span>
-      </div>
-
       <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-        <span
-          style={{
-            fontSize: 26,
-            letterSpacing: "0.2em",
-            textTransform: "uppercase",
-            color: ACCENT,
-            border: `2px solid ${ACCENT}`,
-            borderRadius: "6px",
-            padding: "8px 20px",
-          }}
-        >
-          {preset}
-        </span>
-        <span style={{ fontSize: 26, color: INK_400, letterSpacing: "0.04em" }}>
-          generative ambient &mdash; seeded, ever-evolving
-        </span>
+        <span style={{ fontSize: 40, fontWeight: 700, letterSpacing: "0.16em" }}>hmla</span>
+        <SignalMark size={36} />
       </div>
+
+      <span style={{ fontSize: 96, fontWeight: 700, letterSpacing: "0.04em" }}>{seed}</span>
+
+      <span style={{ fontSize: 32, color: INK_400, letterSpacing: "0.08em" }}>
+        {arch.name} &middot; {space.name} &middot; {groove.name}
+      </span>
+
+      <span
+        style={{
+          fontSize: 26,
+          letterSpacing: "0.2em",
+          textTransform: "uppercase",
+          color: ACCENT,
+          border: `2px solid ${ACCENT}`,
+          borderRadius: "6px",
+          padding: "8px 24px",
+          marginTop: "12px",
+        }}
+      >
+        {preset}
+      </span>
     </div>,
     { width: 1200, height: 630 },
   );
