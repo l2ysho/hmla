@@ -5,6 +5,7 @@ packages:
 # Add entries here ONLY when `pnpm install` fails naming a blocked package.
 allowBuilds:
   "0": esbuild
+  sharp: false
 blockExoticSubdeps: true
 
 # Supply-chain hardening (Shai-Hulud worm mitigations).
