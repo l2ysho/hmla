@@ -1,6 +1,6 @@
 {
   "name": "hmla",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -16,6 +16,8 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@fortawesome/free-brands-svg-icons": "^7.2.0",
+    "@fortawesome/free-solid-svg-icons": "^7.2.0",
     "@vercel/og": "^0.11.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
