@@ -1,8 +1,10 @@
+import { canonSeed } from "../src/engine/seed";
+
 export const config = { runtime: "edge" };
 
-// Escapes the seed for safe interpolation into HTML attributes/text. Seeds
-// are user-editable (max 9 chars, see Input maxLength in App.tsx) so this
-// must not be skipped even though the charset is small in practice.
+// Escapes the seed for safe interpolation into HTML attributes/text. The seed
+// is already canonicalised to `hmla-<digits>` (see canonSeed), but escaping is
+// kept as defence-in-depth for the interpolation.
 const escapeHtml = (s: string) =>
   s.replace(
     /[&<>"']/g,
@@ -11,7 +13,7 @@ const escapeHtml = (s: string) =>
 
 export default function handler(req: Request) {
   const url = new URL(req.url);
-  const seed = (url.searchParams.get("s") || "hmla").slice(0, 9);
+  const seed = canonSeed(url.searchParams.get("s") || "hmla-0000");
   const e = url.searchParams.get("e");
 
   const ogImage = new URL("/api/og", url.origin);

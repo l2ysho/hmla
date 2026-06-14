@@ -1,9 +1,11 @@
+import { faBluesky, faFacebook, faXTwitter } from "@fortawesome/free-brands-svg-icons";
+import { faCheck, faCopy } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useRef, useState } from "react";
 import { Badge } from "./components/ds/Badge";
+import { FaIcon } from "./components/FaIcon";
 import { Button } from "./components/ds/Button";
 import { Fader } from "./components/ds/Fader";
 import { IconButton } from "./components/ds/IconButton";
-import { Input } from "./components/ds/Input";
 import { LED } from "./components/ds/LED";
 import { Switch } from "./components/ds/Switch";
 import { Tag } from "./components/ds/Tag";
@@ -12,6 +14,7 @@ import { SignalMark } from "./components/SignalMark";
 import { buildEngine } from "./engine/buildEngine";
 import { PRESETS, VOICE_COLORS } from "./engine/constants";
 import { makeRng } from "./engine/prng";
+import { canonSeed, makeSeed, randomSeed, seedDigits } from "./engine/seed";
 import { decodeEngine, encodeEngine } from "./engine/share";
 import { useVisual } from "./engine/useVisual";
 import type { EngineEvent, EngineHandle, Params } from "./types";
@@ -73,7 +76,7 @@ function matchPreset(p: Params): string | null {
 function readStored(): StoredPatch {
   const fallback: StoredPatch = {
     params: DEFAULT_PARAMS,
-    seed: `hmla-${Math.floor(1000 + Math.random() * 9000)}`,
+    seed: randomSeed(),
     theme: "dark",
   };
   try {
@@ -82,7 +85,7 @@ function readStored(): StoredPatch {
     const parsed = JSON.parse(raw) as Partial<StoredPatch>;
     return {
       params: { ...DEFAULT_PARAMS, ...parsed.params },
-      seed: parsed.seed ?? fallback.seed,
+      seed: canonSeed(parsed.seed ?? fallback.seed),
       theme: parsed.theme ?? fallback.theme,
     };
   } catch {
@@ -97,11 +100,11 @@ function loadPatch(): StoredPatch {
   const q = new URLSearchParams(window.location.search);
   const urlSeed = q.get("s");
   const urlEng = q.get("e");
-  const seed = urlSeed ?? stored.seed;
+  const seed = canonSeed(urlSeed ?? stored.seed);
   const params = urlEng
     ? (decodeEngine(urlEng) ?? stored.params)
     : urlSeed
-      ? paramsForSeed(urlSeed)
+      ? paramsForSeed(seed)
       : stored.params;
   return { params, seed, theme: stored.theme };
 }
@@ -124,6 +127,7 @@ export default function App() {
   const [activePreset, setActivePreset] = useState<string | null>(() => matchPreset(params));
   const [elapsed, setElapsed] = useState(0);
   const [character, setCharacter] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const paramsRef = useRef(params);
   paramsRef.current = params;
@@ -262,7 +266,36 @@ export default function App() {
     setCharacter(null);
     setPatch((s) => ({ ...s, seed: next, params: { ...s.params, ...PRESETS[name] } }));
   };
-  const reseed = () => commitSeed(`hmla-${Math.floor(1000 + Math.random() * 9000)}`);
+  const reseed = () => commitSeed(randomSeed());
+
+  // shareable link to the exact current patch (seed + engine mix, ?e only when
+  // it differs from the seed's preset — same rule as the address-bar sync)
+  const shareLink = () => {
+    const q = new URLSearchParams({ s: seed });
+    const e = encodeEngine(params);
+    if (e !== encodeEngine(paramsForSeed(seed))) q.set("e", e);
+    return `${window.location.origin}${window.location.pathname}?${q}`;
+  };
+  const openShare = (target: "x" | "bsky" | "fb") => {
+    const url = shareLink();
+    const text = `${seed} #hmla`;
+    const enc = encodeURIComponent;
+    const intent = {
+      x: `https://twitter.com/intent/tweet?text=${enc(text)}&url=${enc(url)}`,
+      bsky: `https://bsky.app/intent/compose?text=${enc(`${text} ${url}`)}`,
+      fb: `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}`,
+    }[target];
+    window.open(intent, "_blank", "noopener,noreferrer,width=600,height=640");
+  };
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareLink());
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      // clipboard may be unavailable (insecure context) — ignore
+    }
+  };
   const toggleTheme = () =>
     setPatch((s) => ({ ...s, theme: s.theme === "dark" ? "light" : "dark" }));
 
@@ -281,6 +314,7 @@ export default function App() {
               <SignalMark className="signalmark" />
             </div>
             <p className="tagline">generative ambient — seeded, ever-evolving</p>
+            <span className="brand__ver">fw {__APP_VERSION__}</span>
           </div>
           <div className="head-tools">
             <Badge tone={playing ? "accent" : "default"} dot>
@@ -390,21 +424,66 @@ export default function App() {
           </div>
           <div className="seedbox">
             <span className="hmla-field__label">seed</span>
-            <Input
-              value={seed}
-              onChange={(e) => setSeed(e.target.value)}
-              onBlur={(e) => commitSeed(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-              }}
-              disabled={playing}
-              spellCheck={false}
-              maxLength={9}
-              className="seedbox__input hmla-tnum"
-            />
+            <div className="seedfield" data-disabled={playing ? "true" : "false"}>
+              <span className="seedfield__prefix hmla-tnum">hmla-</span>
+              <input
+                className="seedfield__digits hmla-tnum"
+                value={seedDigits(seed)}
+                onChange={(e) => setSeed(makeSeed(seedDigits(e.target.value)))}
+                onBlur={(e) => commitSeed(makeSeed(seedDigits(e.target.value)))}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                }}
+                disabled={playing}
+                spellCheck={false}
+                inputMode="numeric"
+                maxLength={6}
+                aria-label="seed number"
+              />
+            </div>
             <IconButton aria-label="regenerate seed" onClick={reseed} disabled={playing}>
               ↻
             </IconButton>
+          </div>
+          <div className="sharebar">
+            <span className="hmla-label sharebar__label">share</span>
+            <button
+              type="button"
+              className="sharebtn"
+              aria-label="share on X"
+              title="share on X"
+              onClick={() => openShare("x")}
+            >
+              <FaIcon icon={faXTwitter} className="sharebtn__icon" />
+            </button>
+            <button
+              type="button"
+              className="sharebtn"
+              aria-label="share on Bluesky"
+              title="share on Bluesky"
+              onClick={() => openShare("bsky")}
+            >
+              <FaIcon icon={faBluesky} className="sharebtn__icon" />
+            </button>
+            <button
+              type="button"
+              className="sharebtn"
+              aria-label="share on Facebook"
+              title="share on Facebook"
+              onClick={() => openShare("fb")}
+            >
+              <FaIcon icon={faFacebook} className="sharebtn__icon" />
+            </button>
+            <button
+              type="button"
+              className="sharebtn"
+              data-copied={copied ? "true" : "false"}
+              aria-label={copied ? "link copied" : "copy link"}
+              title={copied ? "link copied" : "copy link"}
+              onClick={copyLink}
+            >
+              <FaIcon icon={copied ? faCheck : faCopy} className="sharebtn__icon" />
+            </button>
           </div>
         </section>
 

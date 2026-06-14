@@ -157,6 +157,17 @@ body {
   color: var(--text-faint);
   white-space: nowrap;
 }
+/* engraved firmware stamp — model-plate vibe under the tagline */
+.brand__ver {
+  display: block;
+  margin-top: 5px;
+  font-family: var(--font-display);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  opacity: 0.7;
+}
 .head-tools {
   display: flex;
   align-items: center;
@@ -388,14 +399,94 @@ body {
   box-shadow: var(--glow-accent);
 }
 
-/* seed entry */
+/* seed entry — fixed hmla- prefix, digits-only suffix (no arbitrary words can
+ * reach a shared link / social card) */
 .seedbox {
   display: flex;
   align-items: center;
   gap: var(--space-2);
 }
-.seedbox__input.hmla-input {
-  width: 132px;
+.seedfield {
+  display: flex;
+  align-items: center;
+  height: var(--control-h-sm);
+  padding: 0 var(--space-2);
+  background: var(--surface-control);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-inset);
+}
+.seedfield[data-disabled="true"] {
+  opacity: 0.55;
+}
+.seedfield__prefix {
+  color: var(--text-faint);
+  font-size: var(--fs-body);
+  user-select: none;
+}
+.seedfield__digits {
+  width: 64px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-hi);
+  font-family: var(--font-mono);
+  font-size: var(--fs-body);
+  outline: none;
+}
+.seedfield:focus-within {
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+}
+
+/* share row — opens each platform's compose window for the current patch */
+.sharebar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.sharebar__label {
+  margin-right: var(--space-1);
+}
+.sharebtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
+  padding: 0;
+  color: var(--text-muted);
+  background: var(--surface-control);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--bevel-raised);
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+.sharebtn__icon {
+  display: block;
+  width: 15px;
+  height: 15px;
+}
+.sharebtn:hover {
+  color: var(--text-hi);
+  border-color: var(--accent);
+}
+.sharebtn:active {
+  transform: translateY(1px);
+  box-shadow: var(--shadow-inset);
+}
+.sharebtn:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+.sharebtn[data-copied="true"] {
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 /* ---- transport control bar (top) ---- */
