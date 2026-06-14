@@ -34,6 +34,8 @@ export async function buildEngine(
     palette,
     scaleIdx: initialScaleIdx,
     groove,
+    kit,
+    padTone,
   } = deriveIdentity(seed);
 
   const timers = {
@@ -239,7 +241,7 @@ export async function buildEngine(
     breathT += 1;
     breath = Math.sin((breathT * 2 * Math.PI) / breathPeriod);
     const p = getParams();
-    const wet = clamp(0.15 + p.space * 0.7 + space.wetBias + breath * 0.08, 0.08, 0.95);
+    const wet = clamp(0.15 + p.space * 0.7 + space.wetBias + arch.wet + breath * 0.08, 0.08, 0.95);
     reverb.wet.rampTo(wet, 1);
   }, 1000);
 
@@ -330,43 +332,154 @@ export async function buildEngine(
   rhythmBus.connect(rhythmDry);
   rhythmDry.connect(limiter);
 
-  const kit = groove.kit;
-  const boom = new Tone.MembraneSynth({
-    pitchDecay: 0.11,
-    octaves: kit.boomOct,
-    envelope: { attack: 0.001, decay: kit.boomDecay, sustain: 0, release: 0.9 },
-  });
-  const boomFilter = new Tone.Filter(320, "lowpass");
-  boomFilter.Q.value = 1.1;
-  const boomGain = new Tone.Gain(1.5);
-  boom.chain(boomFilter, boomGain, rhythmBus);
+  const gk = groove.kit;
 
-  const pluck = new Tone.PluckSynth({
-    attackNoise: 0.8,
-    dampening: kit.pluckDamp,
-    resonance: kit.pluckRes,
-  });
-  const pluckGain = new Tone.Gain(0.75);
-  pluck.chain(pluckGain, rhythmBus);
+  // Each drum role is built from a per-seed *method* (identity.kit) instead of
+  // one fixed synth, so the same groove can sound like a different machine from
+  // seed to seed. The groove's `gk` numbers still set the base character; the
+  // method chooses how that character is synthesised (and adds snare/metal).
+  // Voices are closures over their nodes; `keep` collects nodes for disposal.
+  const drumNodes: Tone.ToneAudioNode[] = [];
+  const keep = (...n: Tone.ToneAudioNode[]): void => void drumNodes.push(...n);
 
-  const shaker = new Tone.NoiseSynth({
-    noise: { type: "pink" },
-    envelope: { attack: 0.002, decay: kit.shakerDecay, sustain: 0 },
-  });
-  const shakerFilt = new Tone.Filter(kit.shakerHz, "highpass");
-  const shakerGain = new Tone.Gain(0.3);
-  shaker.chain(shakerFilt, shakerGain, rhythmBus);
+  /* kick — membrane, pitch-swept sine body (808), or body + noise click */
+  const kick = (() => {
+    const out = new Tone.Gain(kit.kick === "membrane" ? 1.5 : 1.15);
+    out.connect(rhythmBus);
+    if (kit.kick === "membrane") {
+      const m = new Tone.MembraneSynth({
+        pitchDecay: 0.11,
+        octaves: gk.boomOct,
+        envelope: { attack: 0.001, decay: gk.boomDecay, sustain: 0, release: 0.9 },
+      });
+      const f = new Tone.Filter(320, "lowpass");
+      f.Q.value = 1.1;
+      m.chain(f, out);
+      keep(m, f, out);
+      return (time: number, vel: number) => m.triggerAttackRelease(scale().sub[0], 0.4, time, vel);
+    }
+    const startHz = 120 + kit.kickTune * 45;
+    const endHz = 42 + kit.kickTune * 12;
+    const decay = gk.boomDecay * 0.7;
+    const body = new Tone.Oscillator(startHz, "sine");
+    const env = new Tone.AmplitudeEnvelope({ attack: 0.001, decay, sustain: 0, release: 0.06 });
+    const drive = new Tone.Distortion(0.12);
+    drive.wet.value = 0.5;
+    body.chain(env, drive, out);
+    body.start();
+    keep(body, env, drive, out);
+    let click: Tone.NoiseSynth | null = null;
+    if (kit.kick === "layered") {
+      click = new Tone.NoiseSynth({
+        noise: { type: "white" },
+        envelope: { attack: 0.001, decay: 0.012, sustain: 0 },
+      });
+      const hp = new Tone.Filter(1400, "highpass");
+      const cg = new Tone.Gain(0.5);
+      click.chain(hp, cg, out);
+      keep(click, hp, cg);
+    }
+    return (time: number, vel: number) => {
+      body.frequency.setValueAtTime(startHz, time);
+      body.frequency.exponentialRampToValueAtTime(endHz, time + 0.08);
+      env.triggerAttackRelease(decay, time, vel);
+      click?.triggerAttackRelease(0.02, time, vel);
+    };
+  })();
 
-  const ping = new Tone.FMSynth({
-    harmonicity: kit.pingHarm,
-    modulationIndex: kit.pingMod,
-    oscillator: { type: "sine" },
-    envelope: { attack: 0.001, decay: 0.3, sustain: 0, release: 0.2 },
-    modulation: { type: "sine" },
-    modulationEnvelope: { attack: 0.001, decay: 0.15, sustain: 0, release: 0.1 },
-  });
-  const pingGain = new Tone.Gain(0.2);
-  ping.chain(pingGain, rhythmBus);
+  /* hat (shaker role) — filtered-noise tick, or metallic MetalSynth */
+  const hat = (() => {
+    const out = new Tone.Gain(0.3);
+    out.connect(rhythmBus);
+    if (kit.hat === "metal") {
+      const m = new Tone.MetalSynth({
+        harmonicity: 5.1,
+        modulationIndex: 32,
+        resonance: 3000 + kit.hatTune * 3000,
+        octaves: 1.5,
+        envelope: { attack: 0.001, decay: gk.shakerDecay + 0.02, release: 0.02 },
+      });
+      const hp = new Tone.Filter(gk.shakerHz * 0.7, "highpass");
+      m.chain(hp, out);
+      keep(m, hp, out);
+      return (time: number, vel: number) =>
+        m.triggerAttackRelease("C5", gk.shakerDecay + 0.02, time, vel);
+    }
+    const n = new Tone.NoiseSynth({
+      noise: { type: "pink" },
+      envelope: { attack: 0.002, decay: gk.shakerDecay, sustain: 0 },
+    });
+    const f = new Tone.Filter(gk.shakerHz, "highpass");
+    n.chain(f, out);
+    keep(n, f, out);
+    return (time: number, vel: number) => n.triggerAttackRelease(0.06, time, vel);
+  })();
+
+  /* pluck role — tonal Karplus pluck, or a layered tone+noise snare */
+  const pluckVoice = (() => {
+    const out = new Tone.Gain(0.75);
+    out.connect(rhythmBus);
+    if (kit.pluckVoice === "snare") {
+      const o = new Tone.Oscillator(180, "triangle");
+      const oe = new Tone.AmplitudeEnvelope({
+        attack: 0.001,
+        decay: 0.12,
+        sustain: 0,
+        release: 0.04,
+      });
+      o.chain(oe, out);
+      o.start();
+      const n = new Tone.NoiseSynth({
+        noise: { type: "white" },
+        envelope: { attack: 0.001, decay: 0.2, sustain: 0 },
+      });
+      const bp = new Tone.Filter(2400, "bandpass");
+      bp.Q.value = 0.8;
+      const ng = new Tone.Gain(0.8);
+      n.chain(bp, ng, out);
+      keep(o, oe, n, bp, ng, out);
+      return (_note: string, time: number, vel: number) => {
+        oe.triggerAttackRelease(0.12, time, vel * 0.7);
+        n.triggerAttackRelease(0.2, time, vel);
+      };
+    }
+    const pl = new Tone.PluckSynth({
+      attackNoise: 0.8,
+      dampening: gk.pluckDamp,
+      resonance: gk.pluckRes,
+    });
+    pl.connect(out);
+    keep(pl, out);
+    return (note: string, time: number, _vel: number) => pl.triggerAttack(note, time);
+  })();
+
+  /* ping — bright tonal blip: FM (default) or AM */
+  const ping = (() => {
+    const out = new Tone.Gain(0.2);
+    out.connect(rhythmBus);
+    if (kit.ping === "am") {
+      const s = new Tone.AMSynth({
+        harmonicity: gk.pingHarm * 0.5,
+        envelope: { attack: 0.001, decay: 0.3, sustain: 0, release: 0.2 },
+      });
+      s.connect(out);
+      keep(s, out);
+      return (note: string, dur: number, time: number, vel: number) =>
+        s.triggerAttackRelease(note, dur, time, vel);
+    }
+    const s = new Tone.FMSynth({
+      harmonicity: gk.pingHarm,
+      modulationIndex: gk.pingMod,
+      oscillator: { type: "sine" },
+      envelope: { attack: 0.001, decay: 0.3, sustain: 0, release: 0.2 },
+      modulation: { type: "sine" },
+      modulationEnvelope: { attack: 0.001, decay: 0.15, sustain: 0, release: 0.1 },
+    });
+    s.connect(out);
+    keep(s, out);
+    return (note: string, dur: number, time: number, vel: number) =>
+      s.triggerAttackRelease(note, dur, time, vel);
+  })();
 
   /* Euclidean patterns: threshold = pulse value at which the track starts playing */
   interface Track {
@@ -427,21 +540,16 @@ export async function buildEngine(
       let h: boolean | "ghost";
       try {
         if ((h = gate("boom", p))) {
-          boom.triggerAttackRelease(
-            scale().sub[0],
-            0.4,
-            time + jit(),
-            h === "ghost" ? 0.25 : 0.6 + rrnd() * 0.35,
-          );
+          kick(time + jit(), h === "ghost" ? 0.25 : 0.6 + rrnd() * 0.35);
           emit({ type: "hit", track: "boom" });
         }
         if ((h = gate("pluck", p))) {
           const note = pluckPool[(rrnd() * pluckPool.length) | 0];
-          pluck.triggerAttack(note, time + jit());
+          pluckVoice(note, time + jit(), h === "ghost" ? 0.3 : 0.6 + rrnd() * 0.3);
           emit({ type: "hit", track: "pluck" });
         }
         if ((h = gate("shaker", p))) {
-          shaker.triggerAttackRelease(0.06, time + jit(), h === "ghost" ? 0.2 : 0.4 + rrnd() * 0.4);
+          hat(time + jit(), h === "ghost" ? 0.2 : 0.4 + rrnd() * 0.4);
           emit({ type: "hit", track: "shaker" });
         }
         if ((h = gate("ping", p))) {
@@ -452,12 +560,7 @@ export async function buildEngine(
           } catch {
             // keep fallback note
           }
-          ping.triggerAttackRelease(
-            note,
-            0.25,
-            time + jit(),
-            h === "ghost" ? 0.2 : 0.45 + rrnd() * 0.3,
-          );
+          ping(note, 0.25, time + jit(), h === "ghost" ? 0.2 : 0.45 + rrnd() * 0.3);
           emit({ type: "hit", track: "ping" });
         }
       } catch {
@@ -502,10 +605,13 @@ export async function buildEngine(
 
   /* --- params --- */
   function apply(p: Params) {
-    const base = 300 + Math.pow(p.brightness, 1.6) * 3300;
+    // arch.cut spreads the instruments bright↔dark; padTone nudges each seed a
+    // little within its archetype so even two "warm pad" seeds aren't identical.
+    const cutScale = arch.cut * (0.88 + padTone * 0.24);
+    const base = (300 + Math.pow(p.brightness, 1.6) * 3300) * cutScale;
     filtLfo.min = base * 0.55;
     filtLfo.max = base * 1.55;
-    reverb.wet.rampTo(clamp(0.15 + p.space * 0.7 + space.wetBias, 0.05, 0.95), 0.6);
+    reverb.wet.rampTo(clamp(0.15 + p.space * 0.7 + space.wetBias + arch.wet, 0.05, 0.95), 0.6);
     delay.feedback.rampTo(0.18 + p.space * 0.5, 0.6);
     delay.wet.rampTo(0.08 + p.space * 0.32, 0.6);
     grainBus.gain.rampTo(p.grain * 0.85, 0.6);
@@ -555,16 +661,7 @@ export async function buildEngine(
         grainBus,
         rhythmBus,
         rhythmDry,
-        boom,
-        boomFilter,
-        boomGain,
-        pluck,
-        pluckGain,
-        shaker,
-        shakerFilt,
-        shakerGain,
-        ping,
-        pingGain,
+        ...drumNodes,
       ].forEach((n) => n.dispose());
       voices.forEach((v) => {
         v.osc.dispose();

@@ -15,6 +15,12 @@ export interface Archetype {
   drone: number; // drone gain scaler
   noise: number; // pink-noise bed scaler
   subWave: Wave;
+  // structural timbre shapers — these diverge the instruments *downstream* of
+  // the oscillators (where the shared filter + reverb would otherwise smear
+  // them into the same wash). cut multiplies the master-filter base cutoff
+  // (bright vs dark); wet offsets the reverb baseline (open vs intimate).
+  cut: number;
+  wet: number;
 }
 
 export const ARCHETYPES: Archetype[] = [
@@ -28,6 +34,8 @@ export const ARCHETYPES: Archetype[] = [
     drone: 1.0,
     noise: 0.9,
     subWave: "sine",
+    cut: 1.0,
+    wet: 0,
   },
   {
     name: "glass",
@@ -39,6 +47,8 @@ export const ARCHETYPES: Archetype[] = [
     drone: 0.9,
     noise: 0.7,
     subWave: "sine",
+    cut: 1.55,
+    wet: 0.08,
   },
   {
     name: "air",
@@ -50,6 +60,8 @@ export const ARCHETYPES: Archetype[] = [
     drone: 0.8,
     noise: 1.7,
     subWave: "sine",
+    cut: 1.3,
+    wet: 0.05,
   },
   {
     name: "analog",
@@ -61,6 +73,8 @@ export const ARCHETYPES: Archetype[] = [
     drone: 1.1,
     noise: 0.8,
     subWave: "triangle",
+    cut: 0.82,
+    wet: -0.1,
   },
   {
     name: "hollow",
@@ -72,6 +86,8 @@ export const ARCHETYPES: Archetype[] = [
     drone: 0.95,
     noise: 0.9,
     subWave: "sine",
+    cut: 0.95,
+    wet: -0.04,
   },
 ];
 
@@ -240,6 +256,19 @@ export const GROOVES: Groove[] = [
   },
 ];
 
+/** Per-seed drum-kit *synthesis* selection — which method builds each voice.
+ * Drawn from an independent `<seed>-kit` stream so it adds timbre variety
+ * without disturbing the melody/rhythm/identity draws (existing seeds keep
+ * their notes, key, room, groove and patterns — only the drum sound widens). */
+export interface KitChoice {
+  kick: "membrane" | "synth" | "layered";
+  hat: "noise" | "metal";
+  pluckVoice: "pluck" | "snare";
+  ping: "fm" | "am";
+  kickTune: number; // 0..1 — nudges body tuning of synth/layered kicks
+  hatTune: number; // 0..1 — nudges metal-hat resonance
+}
+
 export interface SeedIdentity {
   arch: Archetype;
   flt: { type: BiquadFilterType; rolloff: Tone.FilterRollOff };
@@ -249,6 +278,8 @@ export interface SeedIdentity {
   palette: number[];
   scaleIdx: number;
   groove: Groove;
+  kit: KitChoice;
+  padTone: number; // 0..1 — per-seed nudge to pad cutoff/wet within its archetype
 }
 
 /**
@@ -283,5 +314,19 @@ export function deriveIdentity(seed: string): SeedIdentity {
   const scaleIdx = palette[(trnd() * palette.length) | 0];
   const groove = tPick(GROOVES);
 
-  return { arch, flt, space, fQ, octaveMul, palette, scaleIdx, groove };
+  // Drum-kit synthesis + pad nudge come from their own streams, so the draws
+  // above (which fix the musical content) stay byte-for-byte unchanged.
+  const krnd = makeRng(`${seed}-kit`);
+  const kPick = <T>(arr: readonly T[]): T => arr[(krnd() * arr.length) | 0];
+  const kit: KitChoice = {
+    kick: kPick(["membrane", "synth", "layered"] as const),
+    hat: kPick(["noise", "metal"] as const),
+    pluckVoice: kPick(["pluck", "snare"] as const),
+    ping: kPick(["fm", "am"] as const),
+    kickTune: krnd(),
+    hatTune: krnd(),
+  };
+  const padTone = makeRng(`${seed}-pad`)();
+
+  return { arch, flt, space, fQ, octaveMul, palette, scaleIdx, groove, kit, padTone };
 }
