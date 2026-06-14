@@ -1,0 +1,446 @@
+<!doctype html>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>hmla — sound lab</title>
+
+<!-- Tone.js v15 from CDN. No build step: open this file (or serve it),
+     pick an instrument, tweak the sliders, hit play. When you like a sound,
+     "copy preset" and paste the string back into chat. -->
+<script src="https://cdn.jsdelivr.net/npm/tone@15/build/Tone.js"></script>
+
+<style>
+  :root {
+    --ink-900: #0d0d10; --ink-850: #131316; --ink-800: #17171b;
+    --ink-700: #202027; --ink-600: #2c2c35; --line: #2c2c35;
+    --text: #e8e7e3; --muted: #9a9aa5; --faint: #6b6b75; --accent: #ff5c38;
+    --cyan: #38bdf8; --green: #4ade80; --amber: #fbbf24; --violet: #a78bfa;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0 0 64px;
+    background: radial-gradient(120% 80% at 50% -10%, #1b1b22 0%, transparent 55%), var(--ink-900);
+    color: var(--text);
+    font: 14px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px clamp(16px, 4vw, 40px);
+    background: color-mix(in oklab, var(--ink-850) 90%, transparent);
+    backdrop-filter: blur(8px); border-bottom: 1px solid var(--line);
+  }
+  .brand { font-weight: 700; letter-spacing: 0.18em; font-size: 18px; }
+  .brand b { color: var(--accent); }
+  header .hint { color: var(--faint); font-size: 12px; flex: 1; }
+  header .ctl { display: flex; align-items: center; gap: 8px; }
+  input[type="range"] { accent-color: var(--accent); }
+  button {
+    font: inherit; color: var(--text); background: var(--ink-700);
+    border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  button.primary { background: var(--accent); color: var(--ink-900); border-color: var(--accent); font-weight: 700; }
+  button.primary:hover { filter: brightness(1.08); color: var(--ink-900); }
+
+  main { padding: clamp(16px, 4vw, 40px); max-width: 720px; margin: 0 auto; }
+
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+  .tab {
+    text-transform: lowercase; letter-spacing: 0.04em; padding: 8px 16px;
+  }
+  .tab[aria-selected="true"] {
+    background: color-mix(in oklab, var(--accent) 18%, var(--ink-800));
+    border-color: var(--accent); color: var(--accent);
+  }
+
+  .panel {
+    background: linear-gradient(180deg, var(--ink-800), var(--ink-850));
+    border: 1px solid var(--line); border-radius: 14px; padding: 22px;
+  }
+  .panel h2 { margin: 0 0 2px; font-size: 16px; }
+  .panel .sub { margin: 0 0 18px; color: var(--faint); font-size: 12px; }
+
+  .ctrls { display: grid; gap: 14px; }
+  .row { display: grid; grid-template-columns: 130px 1fr 56px; align-items: center; gap: 14px; }
+  .row > label { color: var(--muted); font-size: 13px; }
+  .row > input[type="range"] { width: 100%; }
+  .row > select {
+    font: inherit; color: var(--text); background: var(--ink-700);
+    border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; grid-column: 2 / 4;
+  }
+  .row > .val { text-align: right; color: var(--text); font-variant-numeric: tabular-nums; font-size: 13px; }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+  .actions .spacer { flex: 1; }
+  label.toggle { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; cursor: pointer; }
+
+  .io { margin-top: 26px; display: grid; gap: 18px; }
+  .io h3 { margin: 0 0 6px; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); }
+  textarea {
+    width: 100%; min-height: 70px; resize: vertical; font: 12px/1.5 ui-monospace, Menlo, monospace;
+    color: var(--text); background: var(--ink-900); border: 1px solid var(--line); border-radius: 10px; padding: 12px;
+  }
+  .io .line { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
+  .io .msg { font-size: 12px; color: var(--green); }
+  .io .msg.err { color: var(--accent); }
+</style>
+
+<header>
+  <span class="brand"><b>hmla</b> · sound lab</span>
+  <span class="hint">tweak → play → copy preset → paste back to me</span>
+  <span class="ctl">
+    <label style="color: var(--faint); font-size: 12px">vol</label>
+    <input id="vol" type="range" min="0" max="1" step="0.01" value="0.85" style="width: 100px" />
+    <button id="panic">stop all</button>
+  </span>
+</header>
+
+<main>
+  <div class="tabs" id="tabs"></div>
+
+  <section class="panel">
+    <h2 id="instName"></h2>
+    <p class="sub" id="instSub"></p>
+    <div class="ctrls" id="ctrls"></div>
+
+    <div class="actions">
+      <button class="primary" id="play">▶ play</button>
+      <button id="rand">🎲 randomize</button>
+      <button id="reset">reset</button>
+      <span class="spacer"></span>
+      <label class="toggle"><input type="checkbox" id="auto" checked /> auto-play on change</label>
+    </div>
+  </section>
+
+  <div class="io">
+    <div>
+      <h3>preset — copy this and paste it to me</h3>
+      <textarea id="out" readonly></textarea>
+      <div class="line">
+        <button id="copy">copy preset</button>
+        <span class="msg" id="copyMsg"></span>
+      </div>
+    </div>
+    <div>
+      <h3>load a preset (paste one here)</h3>
+      <textarea id="in" placeholder='{"hmla_preset":1,"type":"pad",...}'></textarea>
+      <div class="line">
+        <button id="load">load</button>
+        <span class="msg" id="loadMsg"></span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  // ---- master routing: dry bus + a shared reverb send (wet=1 so it's a pure
+  // wet copy; per-sound "reverb" param sets the send level) ----------------
+  const master = new Tone.Gain(0.85).toDestination();
+  const reverb = new Tone.Reverb({ decay: 6, preDelay: 0.02, wet: 1 });
+  reverb.connect(master);
+
+  let started = false;
+  async function ensure() {
+    if (started) return;
+    await Tone.start();
+    await reverb.generate();
+    started = true;
+  }
+  document.getElementById("vol").addEventListener("input", (e) =>
+    master.gain.rampTo(parseFloat(e.target.value), 0.05));
+
+  const live = new Set();
+  function track(nodes, ms) {
+    const arr = [].concat(nodes);
+    arr.forEach((n) => live.add(n));
+    setTimeout(() => { arr.forEach((n) => { try { n.dispose(); } catch {} live.delete(n); }); }, ms);
+  }
+  document.getElementById("panic").addEventListener("click", () => {
+    live.forEach((n) => { try { n.dispose(); } catch {} }); live.clear();
+  });
+
+  const T = (n) => Tone.Frequency(n).toFrequency();
+  const NOW = () => Tone.now();
+  // connect a node to dry master + a parallel reverb send at level `wet`
+  function routeWet(node, wet) {
+    node.connect(master);
+    const send = new Tone.Gain(wet);
+    node.connect(send); send.connect(reverb);
+    return send;
+  }
+  function repeat(fn, n, gapMs) { for (let i = 0; i < n; i++) setTimeout(fn, i * gapMs); }
+
+  // ========================================================================
+  // INSTRUMENT DEFINITIONS — each declares its controls + a play(p) that
+  // reads the live param object, builds Tone nodes, triggers, and returns
+  // { nodes, ms } so they self-dispose after the tail.
+  // ========================================================================
+  const num = (k, label, min, max, step, def) => ({ k, label, min, max, step, default: def });
+  const sel = (k, label, options, def) => ({ k, label, type: "select", options, default: def });
+
+  const INSTRUMENTS = {
+    pad: {
+      label: "pad", name: "Pad / Drone",
+      sub: "stacked detuned oscillators → lowpass → reverb. plays a 4-note chord.",
+      controls: [
+        sel("wave", "waveform", ["sawtooth", "square", "triangle", "sine"], "sawtooth"),
+        num("voices", "unison voices", 1, 7, 1, 3),
+        num("detune", "detune (¢)", 0, 60, 1, 24),
+        num("attack", "attack (s)", 0.01, 4, 0.01, 1),
+        num("release", "release (s)", 0.3, 8, 0.1, 4),
+        num("cutoff", "cutoff (Hz)", 200, 9000, 10, 4000),
+        num("reverb", "reverb", 0, 0.9, 0.01, 0.4),
+      ],
+      play(p) {
+        const filt = new Tone.Filter(p.cutoff, "lowpass");
+        const send = routeWet(filt, p.reverb);
+        const nodes = [filt, send];
+        ["C3", "E3", "G3", "B3"].forEach((n) => {
+          const o = new Tone.FatOscillator(T(n), p.wave, p.detune);
+          o.count = Math.max(1, p.voices | 0);
+          const e = new Tone.AmplitudeEnvelope({ attack: p.attack, decay: 1.5, sustain: 0.8, release: p.release });
+          const g = new Tone.Gain(0.14 / Math.sqrt(p.voices));
+          o.chain(e, g, filt); o.start(); e.triggerAttackRelease(2.5);
+          nodes.push(o, e, g);
+        });
+        return { nodes, ms: (2.5 + p.release + 1) * 1000 };
+      },
+    },
+
+    fm: {
+      label: "fm tone", name: "FM Tone / Bell",
+      sub: "frequency-modulation voice — bells, keys, mallets. plays a 3-note chord.",
+      controls: [
+        num("harmonicity", "harmonicity", 0.5, 12, 0.1, 3.5),
+        num("modIndex", "mod index", 1, 40, 0.5, 12),
+        num("attack", "attack (s)", 0.001, 0.5, 0.001, 0.002),
+        num("decay", "decay (s)", 0.1, 3, 0.05, 1.4),
+        num("release", "release (s)", 0.1, 4, 0.05, 1.4),
+        num("reverb", "reverb", 0, 0.9, 0.01, 0.35),
+      ],
+      play(p) {
+        const s = new Tone.PolySynth(Tone.FMSynth, {
+          harmonicity: p.harmonicity, modulationIndex: p.modIndex,
+          envelope: { attack: p.attack, decay: p.decay, sustain: 0, release: p.release },
+          modulationEnvelope: { attack: 0.001, decay: p.decay * 0.5, sustain: 0, release: p.release * 0.5 },
+        });
+        const send = routeWet(s, p.reverb);
+        s.triggerAttackRelease(["C4", "G4", "E5"], p.decay + 0.4);
+        return { nodes: [s, send], ms: (p.decay + p.release + 1) * 1000 };
+      },
+    },
+
+    kick: {
+      label: "kick", name: "Kick (layered)",
+      sub: "pitch-swept sine body + optional noise click + drive. single hit.",
+      controls: [
+        num("startHz", "start (Hz)", 60, 300, 1, 130),
+        num("endHz", "end (Hz)", 30, 120, 1, 48),
+        num("sweep", "pitch sweep (s)", 0.01, 0.2, 0.005, 0.08),
+        num("decay", "amp decay (s)", 0.1, 0.8, 0.01, 0.34),
+        num("click", "click amount", 0, 1, 0.01, 0.5),
+        num("drive", "drive", 0, 1, 0.01, 0.1),
+        num("reverb", "reverb", 0, 0.4, 0.01, 0.03),
+      ],
+      play(p) {
+        const body = new Tone.Oscillator(p.startHz, "sine");
+        const eo = new Tone.AmplitudeEnvelope({ attack: 0.001, decay: p.decay, sustain: 0, release: 0.05 });
+        const dist = new Tone.Distortion(p.drive);
+        const go = new Tone.Gain(0.9);
+        body.chain(eo, dist, go);
+        const send = routeWet(go, p.reverb);
+        body.start();
+        body.frequency.setValueAtTime(p.startHz, NOW());
+        body.frequency.exponentialRampToValueAtTime(Math.max(20, p.endHz), NOW() + p.sweep);
+        eo.triggerAttackRelease(p.decay);
+        const nodes = [body, eo, dist, go, send];
+        if (p.click > 0.001) {
+          const c = new Tone.NoiseSynth({ noise: { type: "white" }, envelope: { attack: 0.001, decay: 0.012, sustain: 0 } });
+          const hp = new Tone.Filter(1200, "highpass");
+          const gc = new Tone.Gain(p.click * 0.6);
+          c.chain(hp, gc, go); c.triggerAttackRelease(0.02);
+          nodes.push(c, hp, gc);
+        }
+        return { nodes, ms: 1500 };
+      },
+    },
+
+    snare: {
+      label: "snare", name: "Snare (tone + noise)",
+      sub: "a triangle body layered with a bandpassed noise burst. single hit.",
+      controls: [
+        num("toneHz", "tone (Hz)", 100, 320, 1, 180),
+        num("toneDecay", "tone decay (s)", 0.03, 0.4, 0.01, 0.12),
+        num("noiseHz", "noise band (Hz)", 800, 6000, 50, 2400),
+        num("noiseDecay", "noise decay (s)", 0.05, 0.5, 0.01, 0.2),
+        num("mix", "noise ⟷ tone", 0, 1, 0.01, 0.55),
+        num("reverb", "reverb", 0, 0.6, 0.01, 0.08),
+      ],
+      play(p) {
+        const o = new Tone.Oscillator(p.toneHz, "triangle");
+        const eo = new Tone.AmplitudeEnvelope({ attack: 0.001, decay: p.toneDecay, sustain: 0, release: 0.04 });
+        const go = new Tone.Gain(0.55 * (1 - p.mix));
+        o.chain(eo, go); o.start(); eo.triggerAttackRelease(p.toneDecay);
+        const n = new Tone.NoiseSynth({ noise: { type: "white" }, envelope: { attack: 0.001, decay: p.noiseDecay, sustain: 0 } });
+        const bp = new Tone.Filter(p.noiseHz, "bandpass"); bp.Q.value = 0.8;
+        const gn = new Tone.Gain(0.7 * p.mix);
+        n.chain(bp, gn); n.triggerAttackRelease(p.noiseDecay);
+        const send = routeWet(go, p.reverb); go.connect(send); gn.connect(send); gn.connect(master);
+        return { nodes: [o, eo, go, n, bp, gn, send], ms: 1300 };
+      },
+    },
+
+    hat: {
+      label: "hat", name: "Hi-hat / Cymbal",
+      sub: "noise-through-highpass or metallic (6 inharmonic squares). plays 4 hits.",
+      controls: [
+        sel("kind", "engine", ["noise", "metal"], "metal"),
+        num("decay", "decay (s)", 0.02, 0.6, 0.01, 0.05),
+        num("bright", "brightness", 2000, 9000, 50, 6000),
+        num("res", "metal resonance", 1000, 7000, 50, 4000),
+        num("gain", "level", 0.05, 0.6, 0.01, 0.3),
+        num("reverb", "reverb", 0, 0.6, 0.01, 0.06),
+      ],
+      play(p) {
+        const make = () => {
+          let outNode, nodes;
+          if (p.kind === "noise") {
+            const n = new Tone.NoiseSynth({ noise: { type: "white" }, envelope: { attack: 0.001, decay: p.decay, sustain: 0 } });
+            const hp = new Tone.Filter(p.bright, "highpass");
+            const g = new Tone.Gain(p.gain);
+            n.chain(hp, g); outNode = g; nodes = [n, hp, g];
+            n.triggerAttackRelease(p.decay);
+          } else {
+            const m = new Tone.MetalSynth({
+              harmonicity: 5.1, modulationIndex: 32, resonance: p.res, octaves: 1.5,
+              envelope: { attack: 0.001, decay: p.decay, release: p.decay * 0.3 },
+            });
+            const hp = new Tone.Filter(p.bright * 0.5, "highpass");
+            const g = new Tone.Gain(p.gain);
+            m.chain(hp, g); outNode = g; nodes = [m, hp, g];
+            m.triggerAttackRelease("C5", p.decay);
+          }
+          const send = routeWet(outNode, p.reverb); nodes.push(send);
+          track(nodes, (p.decay + 0.6) * 1000);
+        };
+        repeat(make, 4, 160);
+        return { nodes: [], ms: 0 }; // hits self-track above
+      },
+    },
+  };
+
+  // ========================================================================
+  // state + UI
+  // ========================================================================
+  const defaultsFor = (id) => {
+    const o = {};
+    INSTRUMENTS[id].controls.forEach((c) => (o[c.k] = c.default));
+    return o;
+  };
+  const state = {};
+  Object.keys(INSTRUMENTS).forEach((id) => (state[id] = defaultsFor(id)));
+  let activeId = "pad";
+
+  const $ = (id) => document.getElementById(id);
+  const tabsEl = $("tabs"), ctrlsEl = $("ctrls"), outEl = $("out");
+
+  // tabs
+  Object.entries(INSTRUMENTS).forEach(([id, inst]) => {
+    const b = document.createElement("button");
+    b.className = "tab"; b.textContent = inst.label; b.dataset.id = id;
+    b.setAttribute("aria-selected", id === activeId ? "true" : "false");
+    b.addEventListener("click", () => { activeId = id; renderTabs(); renderControls(); });
+    tabsEl.appendChild(b);
+  });
+  function renderTabs() {
+    [...tabsEl.children].forEach((b) => b.setAttribute("aria-selected", b.dataset.id === activeId ? "true" : "false"));
+  }
+
+  function fmtVal(c, v) {
+    if (c.type === "select") return v;
+    if (c.step >= 1) return String(v | 0);
+    return Number(v).toFixed(c.step >= 0.1 ? 1 : c.step >= 0.01 ? 2 : 3);
+  }
+
+  function renderControls() {
+    const inst = INSTRUMENTS[activeId], p = state[activeId];
+    $("instName").textContent = inst.name;
+    $("instSub").textContent = inst.sub;
+    ctrlsEl.innerHTML = "";
+    inst.controls.forEach((c) => {
+      const row = document.createElement("div"); row.className = "row";
+      const lab = document.createElement("label"); lab.textContent = c.label;
+      row.appendChild(lab);
+      if (c.type === "select") {
+        const s = document.createElement("select");
+        c.options.forEach((opt) => {
+          const o = document.createElement("option"); o.value = o.textContent = opt;
+          if (opt === p[c.k]) o.selected = true; s.appendChild(o);
+        });
+        s.addEventListener("change", () => { p[c.k] = s.value; onChange(); });
+        row.appendChild(s);
+      } else {
+        const r = document.createElement("input");
+        r.type = "range"; r.min = c.min; r.max = c.max; r.step = c.step; r.value = p[c.k];
+        const val = document.createElement("span"); val.className = "val"; val.textContent = fmtVal(c, p[c.k]);
+        r.addEventListener("input", () => {
+          p[c.k] = parseFloat(r.value); val.textContent = fmtVal(c, p[c.k]); onChange();
+        });
+        row.appendChild(r); row.appendChild(val);
+      }
+      ctrlsEl.appendChild(row);
+    });
+    updateOut();
+  }
+
+  let debounce;
+  function onChange() {
+    updateOut();
+    if ($("auto").checked) { clearTimeout(debounce); debounce = setTimeout(play, 140); }
+  }
+
+  function updateOut() {
+    outEl.value = JSON.stringify({ hmla_preset: 1, type: activeId, name: INSTRUMENTS[activeId].name, params: state[activeId] }, null, 0);
+  }
+
+  async function play() {
+    await ensure();
+    try {
+      const { nodes, ms } = INSTRUMENTS[activeId].play(state[activeId]);
+      if (nodes.length) track(nodes, ms);
+    } catch (e) { console.error("play", activeId, e); }
+  }
+
+  // actions
+  $("play").addEventListener("click", play);
+  $("reset").addEventListener("click", () => { state[activeId] = defaultsFor(activeId); renderControls(); });
+  $("rand").addEventListener("click", () => {
+    const inst = INSTRUMENTS[activeId], p = state[activeId];
+    inst.controls.forEach((c) => {
+      if (c.type === "select") p[c.k] = c.options[(Math.random() * c.options.length) | 0];
+      else { const v = c.min + Math.random() * (c.max - c.min); p[c.k] = Math.round(v / c.step) * c.step; }
+    });
+    renderControls(); play();
+  });
+  $("copy").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(outEl.value); flash("copyMsg", "copied!"); }
+    catch { outEl.select(); document.execCommand("copy"); flash("copyMsg", "copied!"); }
+  });
+  $("load").addEventListener("click", () => {
+    try {
+      const obj = JSON.parse($("in").value.trim());
+      if (!obj.type || !INSTRUMENTS[obj.type]) throw new Error("unknown type");
+      activeId = obj.type;
+      const base = defaultsFor(obj.type);
+      state[obj.type] = { ...base, ...(obj.params || {}) };
+      renderTabs(); renderControls(); flash("loadMsg", "loaded ✓"); play();
+    } catch (e) { flash("loadMsg", "couldn't parse: " + e.message, true); }
+  });
+  function flash(id, msg, err) {
+    const el = $(id); el.textContent = msg; el.classList.toggle("err", !!err);
+    setTimeout(() => (el.textContent = ""), 2200);
+  }
+
+  renderControls();
+</script>

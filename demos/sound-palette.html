@@ -1,0 +1,586 @@
+<!doctype html>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>hmla — sound palette</title>
+
+<!-- Tone.js from CDN; pinned to the v15 line the app ships. No build step:
+     double-click this file (or serve it) and click any pad to hear it. -->
+<script src="https://cdn.jsdelivr.net/npm/tone@15/build/Tone.js"></script>
+
+<style>
+  :root {
+    --ink-900: #0d0d10;
+    --ink-850: #131316;
+    --ink-800: #17171b;
+    --ink-700: #202027;
+    --ink-600: #2c2c35;
+    --line: #2c2c35;
+    --text: #e8e7e3;
+    --muted: #9a9aa5;
+    --faint: #6b6b75;
+    --accent: #ff5c38;
+    --cyan: #38bdf8;
+    --green: #4ade80;
+    --amber: #fbbf24;
+    --violet: #a78bfa;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0 0 64px;
+    background:
+      radial-gradient(120% 80% at 50% -10%, #1b1b22 0%, transparent 55%),
+      var(--ink-900);
+    color: var(--text);
+    font: 14px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px clamp(16px, 4vw, 40px);
+    background: color-mix(in oklab, var(--ink-850) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { font-weight: 700; letter-spacing: 0.18em; font-size: 18px; }
+  .brand b { color: var(--accent); }
+  header .hint { color: var(--faint); font-size: 12px; flex: 1; }
+  header .ctl { display: flex; align-items: center; gap: 8px; }
+  input[type="range"] { accent-color: var(--accent); width: 110px; }
+  button.panic {
+    font: inherit;
+    color: var(--text);
+    background: var(--ink-700);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 7px 14px;
+    cursor: pointer;
+  }
+  button.panic:hover { border-color: var(--accent); color: var(--accent); }
+
+  main { padding: clamp(16px, 4vw, 40px); max-width: 1100px; margin: 0 auto; }
+  .group { margin-bottom: 36px; }
+  .group > h2 {
+    margin: 0 0 4px;
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .group > p { margin: 0 0 16px; color: var(--faint); font-size: 12px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .pad {
+    text-align: left;
+    font: inherit;
+    color: var(--text);
+    background: linear-gradient(180deg, var(--ink-800), var(--ink-850));
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: transform 0.08s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+  }
+  .pad:hover { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+  .pad:active { transform: translateY(1px) scale(0.99); }
+  .pad.flash { border-color: var(--accent); box-shadow: 0 0 22px -4px var(--accent); }
+  .pad .name { font-weight: 600; letter-spacing: 0.02em; }
+  .pad .tag {
+    float: right;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-900);
+    background: var(--faint);
+    border-radius: 4px;
+    padding: 1px 6px;
+  }
+  .pad[data-c="layer"] .tag { background: var(--accent); }
+  .pad[data-c="fm"] .tag { background: var(--cyan); }
+  .pad[data-c="metal"] .tag { background: var(--amber); }
+  .pad[data-c="noise"] .tag { background: var(--green); }
+  .pad[data-c="sub"] .tag { background: var(--violet); }
+  .pad .desc { color: var(--muted); font-size: 12px; margin-top: 5px; }
+</style>
+
+<header>
+  <span class="brand"><b>hmla</b> · sound palette</span>
+  <span class="hint">click any tile to audition — pure Tone.js synthesis, no samples</span>
+  <span class="ctl">
+    <label style="color: var(--faint); font-size: 12px">vol</label>
+    <input id="vol" type="range" min="0" max="1" step="0.01" value="0.85" />
+    <button class="panic" id="panic">stop all</button>
+  </span>
+</header>
+
+<main id="board"></main>
+
+<script>
+  // ---------------------------------------------------------------------------
+  // master routing: pads/keys run lush through a shared reverb; drums stay
+  // mostly dry. everything self-disposes after its tail so nodes don't pile up.
+  // ---------------------------------------------------------------------------
+  const master = new Tone.Gain(0.85).toDestination();
+  const reverb = new Tone.Reverb({ decay: 6, preDelay: 0.02, wet: 0.38 });
+  reverb.connect(master);
+  const drumBus = new Tone.Gain(1).connect(master);
+  const drumVerb = new Tone.Gain(0.1).connect(reverb); // tiny room on drums
+  drumBus.connect(drumVerb);
+
+  let started = false;
+  async function ensure() {
+    if (started) return;
+    await Tone.start();
+    await reverb.generate();
+    started = true;
+  }
+
+  document.getElementById("vol").addEventListener("input", (e) => {
+    master.gain.rampTo(parseFloat(e.target.value), 0.05);
+  });
+
+  // track live nodes for the panic button + auto-cleanup
+  const live = new Set();
+  function track(nodes, ms) {
+    const arr = [].concat(nodes);
+    arr.forEach((n) => live.add(n));
+    setTimeout(() => {
+      arr.forEach((n) => {
+        try { n.dispose(); } catch {}
+        live.delete(n);
+      });
+    }, ms);
+  }
+  document.getElementById("panic").addEventListener("click", () => {
+    live.forEach((n) => { try { n.dispose(); } catch {} });
+    live.clear();
+  });
+
+  const T = (n) => Tone.Frequency(n).toFrequency();
+  // fire a one-shot voice n times, gapMs apart (for hats/shakers/claps)
+  function repeat(fn, n, gapMs) {
+    for (let i = 0; i < n; i++) setTimeout(fn, i * gapMs);
+  }
+
+  // ===========================================================================
+  // PADS — sustained chords. Variety comes from oscillator choice + how many
+  // detuned copies are stacked (unison), plus movement (LFO/tremolo).
+  // ===========================================================================
+  // generic stacked-oscillator pad voice
+  function padChord(notes, type, spread, count, env, level, hold, dest = reverb) {
+    const nodes = [];
+    notes.forEach((n) => {
+      const o = new Tone.FatOscillator(T(n), type, spread);
+      o.count = count;
+      const e = new Tone.AmplitudeEnvelope(env);
+      const g = new Tone.Gain(level);
+      o.chain(e, g, dest);
+      o.start();
+      e.triggerAttackRelease(hold);
+      nodes.push(o, e, g);
+    });
+    track(nodes, (hold + env.release + 1) * 1000);
+  }
+
+  const CHORD = ["C3", "E3", "G3", "B3"];
+  const CHORD_HI = ["C4", "G4", "C5", "E5"];
+
+  const PADS = [
+    {
+      name: "warm pad", tag: "saw ×3", c: "saw",
+      desc: "stacked detuned saws — the bread-and-butter analog pad",
+      play: () => padChord(CHORD, "sawtooth", 24, 3, { attack: 1.2, decay: 2, sustain: 0.8, release: 4 }, 0.12, 3),
+    },
+    {
+      name: "super-saw", tag: "saw ×5", c: "saw",
+      desc: "wide 5-voice unison, big detune — lush and thick",
+      play: () => padChord(CHORD, "sawtooth", 40, 5, { attack: 0.8, decay: 2, sustain: 0.85, release: 5 }, 0.09, 3),
+    },
+    {
+      name: "glass", tag: "tri hi", c: "tri",
+      desc: "triangle stack up an octave — clean and bell-like",
+      play: () => padChord(CHORD_HI, "triangle", 14, 2, { attack: 1.4, decay: 3, sustain: 0.7, release: 5 }, 0.14, 3),
+    },
+    {
+      name: "hollow", tag: "square", c: "sqr",
+      desc: "square wave — woody, slightly reedy character",
+      play: () => padChord(CHORD, "square", 16, 2, { attack: 0.9, decay: 2, sustain: 0.7, release: 4 }, 0.08, 3),
+    },
+    {
+      name: "PWM pad", tag: "pulse", c: "sub",
+      desc: "pulse osc with width-LFO — shimmering, ’80s-synth movement",
+      play: () => {
+        const nodes = [];
+        CHORD.forEach((n) => {
+          const o = new Tone.PulseOscillator(T(n), 0.4);
+          const lfo = new Tone.LFO(0.2, 0.2, 0.7).start();
+          lfo.connect(o.width);
+          const e = new Tone.AmplitudeEnvelope({ attack: 1, decay: 2, sustain: 0.8, release: 4 });
+          const g = new Tone.Gain(0.07);
+          o.chain(e, g, reverb);
+          o.start();
+          e.triggerAttackRelease(3);
+          nodes.push(o, lfo, e, g);
+        });
+        track(nodes, 8000);
+      },
+    },
+    {
+      name: "tremolo pad", tag: "AM", c: "fm",
+      desc: "saw stack through a tremolo — gentle pulsing amplitude",
+      play: () => {
+        const trem = new Tone.Tremolo(0.3, 0.6).start();
+        trem.connect(reverb);
+        padChord(CHORD, "sawtooth", 22, 3, { attack: 1, decay: 2, sustain: 0.8, release: 4 }, 0.1, 3, trem);
+        track(trem, 9000);
+      },
+    },
+    {
+      name: "air", tag: "sine+noise", c: "noise",
+      desc: "soft sine chord over a filtered pink-noise bed — breathy",
+      play: () => {
+        padChord(CHORD_HI, "sine", 8, 2, { attack: 1.6, decay: 3, sustain: 0.7, release: 5 }, 0.12, 3);
+        const noise = new Tone.Noise("pink").start();
+        const filt = new Tone.Filter(700, "lowpass");
+        const e = new Tone.AmplitudeEnvelope({ attack: 1.5, decay: 2, sustain: 0.6, release: 4 });
+        const g = new Tone.Gain(0.06);
+        noise.chain(filt, e, g, reverb);
+        e.triggerAttackRelease(3);
+        track([noise, filt, e, g], 8000);
+      },
+    },
+    {
+      name: "octave stack", tag: "sub+saw", c: "sub",
+      desc: "saw chord doubled an octave below — weighty, organ-ish",
+      play: () => {
+        padChord(CHORD, "sawtooth", 20, 3, { attack: 1, decay: 2, sustain: 0.8, release: 4 }, 0.1, 3);
+        padChord(["C2", "G2"], "triangle", 10, 2, { attack: 1, decay: 2, sustain: 0.85, release: 4 }, 0.12, 3);
+      },
+    },
+  ];
+
+  // ===========================================================================
+  // TONAL / KEYS — Tone's built-in synth voices. Good for plucks, bells,
+  // leads, mallets. Each is one engine doing the layering internally (FM/AM).
+  // ===========================================================================
+  const KEYS = [
+    {
+      name: "FM bell", tag: "FMSynth", c: "fm",
+      desc: "inharmonic FM — glassy bell / electric-piana tone",
+      play: () => {
+        const s = new Tone.PolySynth(Tone.FMSynth, {
+          harmonicity: 3.5, modulationIndex: 12,
+          envelope: { attack: 0.001, decay: 1.4, sustain: 0, release: 1.4 },
+          modulationEnvelope: { attack: 0.001, decay: 0.5, sustain: 0, release: 0.5 },
+        }).connect(reverb);
+        s.triggerAttackRelease(["C4", "G4", "E5"], 1.5);
+        track(s, 4000);
+      },
+    },
+    {
+      name: "AM keys", tag: "AMSynth", c: "fm",
+      desc: "amplitude modulation — hollow, slightly metallic keys",
+      play: () => {
+        const s = new Tone.PolySynth(Tone.AMSynth, {
+          harmonicity: 2,
+          envelope: { attack: 0.01, decay: 0.6, sustain: 0.2, release: 1.2 },
+        }).connect(reverb);
+        s.triggerAttackRelease(["C4", "Eb4", "G4"], 1.2);
+        track(s, 4000);
+      },
+    },
+    {
+      name: "duo lead", tag: "DuoSynth", c: "fm",
+      desc: "two detuned mono voices with vibrato — singing lead",
+      play: () => {
+        const s = new Tone.DuoSynth({ vibratoAmount: 0.3, harmonicity: 1.5 }).connect(reverb);
+        s.triggerAttackRelease("A4", 1.4);
+        track(s, 4000);
+      },
+    },
+    {
+      name: "karplus pluck", tag: "Pluck", c: "noise",
+      desc: "Karplus-Strong string model — nylon/harp-like pluck",
+      play: () => {
+        const s = new Tone.PluckSynth({ attackNoise: 1, dampening: 2600, resonance: 0.95 }).connect(reverb);
+        ["C4", "E4", "G4", "C5"].forEach((n, i) =>
+          setTimeout(() => s.triggerAttack(n), i * 110));
+        track(s, 3000);
+      },
+    },
+    {
+      name: "mono lead", tag: "MonoSynth", c: "saw",
+      desc: "saw + filter envelope — classic subtractive synth lead",
+      play: () => {
+        const s = new Tone.MonoSynth({
+          oscillator: { type: "sawtooth" },
+          filter: { Q: 2, type: "lowpass" },
+          filterEnvelope: { attack: 0.02, decay: 0.3, sustain: 0.3, release: 1, baseFrequency: 300, octaves: 4 },
+          envelope: { attack: 0.01, decay: 0.3, sustain: 0.5, release: 1 },
+        }).connect(reverb);
+        ["A3", "C4", "E4"].forEach((n, i) => setTimeout(() => s.triggerAttackRelease(n, 0.4), i * 180));
+        track(s, 3500);
+      },
+    },
+    {
+      name: "mallet", tag: "MetalSynth", c: "metal",
+      desc: "tuned MetalSynth — vibraphone / kalimba mallet hit",
+      play: () => {
+        const s = new Tone.MetalSynth({
+          harmonicity: 8, modulationIndex: 20, resonance: 800, octaves: 1.2,
+          envelope: { attack: 0.001, decay: 0.8, release: 0.4 },
+        }).connect(reverb);
+        ["C5", "G5", "C6"].forEach((n, i) =>
+          setTimeout(() => s.triggerAttackRelease(n, 0.5), i * 150));
+        track(s, 3000);
+      },
+    },
+  ];
+
+  // ===========================================================================
+  // DRUMS — all synthesized. The point of this section: hear how LAYERING
+  // (body + transient, tone + noise) and synth choice change the character.
+  // ===========================================================================
+  const DRUMS = [
+    // ---- kicks: three ways to build the same role ----
+    {
+      name: "kick · membrane", tag: "1 synth", c: "sub",
+      desc: "Tone.MembraneSynth alone — soft, rounded (what the app uses now)",
+      play: () => {
+        const k = new Tone.MembraneSynth({
+          pitchDecay: 0.05, octaves: 4,
+          envelope: { attack: 0.001, decay: 0.4, sustain: 0, release: 0.4 },
+        }).connect(drumBus);
+        k.triggerAttackRelease("C1", "8n");
+        track(k, 1500);
+      },
+    },
+    {
+      name: "kick · synth body", tag: "pitch env", c: "sub",
+      desc: "bare sine with a fast downward pitch sweep — the 808 'boom'",
+      play: () => {
+        const o = new Tone.Oscillator(120, "sine");
+        const e = new Tone.AmplitudeEnvelope({ attack: 0.001, decay: 0.35, sustain: 0, release: 0.05 });
+        const g = new Tone.Gain(0.9);
+        o.chain(e, g, drumBus);
+        o.start();
+        o.frequency.setValueAtTime(120, Tone.now());
+        o.frequency.exponentialRampToValueAtTime(45, Tone.now() + 0.09);
+        e.triggerAttackRelease(0.3);
+        track([o, e, g], 1500);
+      },
+    },
+    {
+      name: "kick · layered", tag: "body+click", c: "layer",
+      desc: "synth body + a high noise transient — punchy, defined attack",
+      play: () => {
+        // body
+        const o = new Tone.Oscillator(130, "sine");
+        const eo = new Tone.AmplitudeEnvelope({ attack: 0.001, decay: 0.34, sustain: 0, release: 0.05 });
+        const go = new Tone.Gain(0.9);
+        o.chain(eo, go, drumBus);
+        o.start();
+        o.frequency.setValueAtTime(130, Tone.now());
+        o.frequency.exponentialRampToValueAtTime(48, Tone.now() + 0.08);
+        eo.triggerAttackRelease(0.3);
+        // click / beater transient
+        const click = new Tone.NoiseSynth({
+          noise: { type: "white" },
+          envelope: { attack: 0.001, decay: 0.012, sustain: 0 },
+        });
+        const hp = new Tone.Filter(1200, "highpass");
+        const gc = new Tone.Gain(0.5);
+        click.chain(hp, gc, drumBus);
+        click.triggerAttackRelease(0.02);
+        track([o, eo, go, click, hp, gc], 1500);
+      },
+    },
+    // ---- snare / clap: the missing colours ----
+    {
+      name: "snare", tag: "tone+noise", c: "layer",
+      desc: "triangle body + bandpassed noise burst layered together",
+      play: () => {
+        const o = new Tone.Oscillator(180, "triangle");
+        const eo = new Tone.AmplitudeEnvelope({ attack: 0.001, decay: 0.12, sustain: 0, release: 0.05 });
+        const go = new Tone.Gain(0.5);
+        o.chain(eo, go, drumBus);
+        o.start();
+        eo.triggerAttackRelease(0.12);
+        const n = new Tone.NoiseSynth({
+          noise: { type: "white" },
+          envelope: { attack: 0.001, decay: 0.2, sustain: 0 },
+        });
+        const bp = new Tone.Filter(2400, "bandpass");
+        bp.Q.value = 0.7;
+        const gn = new Tone.Gain(0.6);
+        n.chain(bp, gn, drumBus);
+        n.triggerAttackRelease(0.2);
+        track([o, eo, go, n, bp, gn], 1200);
+      },
+    },
+    {
+      name: "clap", tag: "multi-tap", c: "noise",
+      desc: "filtered noise retriggered 4× ~10ms apart — the clap 'spread'",
+      play: () => {
+        const n = new Tone.NoiseSynth({
+          noise: { type: "white" },
+          envelope: { attack: 0.001, decay: 0.04, sustain: 0 },
+        });
+        const bp = new Tone.Filter(1100, "bandpass");
+        bp.Q.value = 1.2;
+        const g = new Tone.Gain(0.5);
+        n.chain(bp, g, drumBus);
+        [0, 10, 20, 32].forEach((ms, i) =>
+          setTimeout(() => n.triggerAttackRelease(i === 3 ? 0.18 : 0.03), ms));
+        track([n, bp, g], 1200);
+      },
+    },
+    // ---- hats / cymbals: noise vs metal ----
+    {
+      name: "closed hat · noise", tag: "noise", c: "noise",
+      desc: "white noise through a highpass — soft 'tss' (app's current hat)",
+      play: () => {
+        const make = () => {
+          const n = new Tone.NoiseSynth({
+            noise: { type: "white" },
+            envelope: { attack: 0.001, decay: 0.03, sustain: 0 },
+          });
+          const hp = new Tone.Filter(7000, "highpass");
+          const g = new Tone.Gain(0.4);
+          n.chain(hp, g, drumBus);
+          n.triggerAttackRelease(0.03);
+          track([n, hp, g], 600);
+        };
+        repeat(make, 4, 150);
+      },
+    },
+    {
+      name: "closed hat · metal", tag: "MetalSynth", c: "metal",
+      desc: "6 inharmonic squares (the real 808 hat algorithm) — metallic tick",
+      play: () => {
+        const make = () => {
+          const m = new Tone.MetalSynth({
+            harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5,
+            envelope: { attack: 0.001, decay: 0.05, release: 0.01 },
+          });
+          const g = new Tone.Gain(0.3);
+          m.chain(g, drumBus);
+          m.triggerAttackRelease("C5", 0.05);
+          track([m, g], 600);
+        };
+        repeat(make, 4, 150);
+      },
+    },
+    {
+      name: "open hat · metal", tag: "MetalSynth", c: "metal",
+      desc: "same engine, long decay — sizzling open hi-hat",
+      play: () => {
+        const m = new Tone.MetalSynth({
+          harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5,
+          envelope: { attack: 0.001, decay: 0.4, release: 0.2 },
+        });
+        const g = new Tone.Gain(0.3);
+        m.chain(g, drumBus);
+        m.triggerAttackRelease("C5", 0.4);
+        track([m, g], 1500);
+      },
+    },
+    {
+      name: "ride / cymbal", tag: "MetalSynth", c: "metal",
+      desc: "low harmonicity, long tail — shimmering cymbal wash",
+      play: () => {
+        const m = new Tone.MetalSynth({
+          harmonicity: 3.4, modulationIndex: 40, resonance: 3000, octaves: 2,
+          envelope: { attack: 0.002, decay: 1.4, release: 0.6 },
+        });
+        const g = new Tone.Gain(0.22);
+        m.chain(g, reverb);
+        m.triggerAttackRelease("C4", 1.4);
+        track([m, g], 3500);
+      },
+    },
+    // ---- perc ----
+    {
+      name: "tom", tag: "membrane", c: "sub",
+      desc: "MembraneSynth tuned up with less pitch decay — round tom",
+      play: () => {
+        const t = new Tone.MembraneSynth({
+          pitchDecay: 0.08, octaves: 3,
+          envelope: { attack: 0.001, decay: 0.3, sustain: 0, release: 0.2 },
+        }).connect(drumBus);
+        ["G2", "C3", "E3"].forEach((n, i) =>
+          setTimeout(() => t.triggerAttackRelease(n, "8n"), i * 180));
+        track(t, 2000);
+      },
+    },
+    {
+      name: "rim / click", tag: "blip", c: "layer",
+      desc: "ultra-short pitched blip — rimshot / woodblock accent",
+      play: () => {
+        const o = new Tone.Oscillator(420, "square");
+        const e = new Tone.AmplitudeEnvelope({ attack: 0.001, decay: 0.03, sustain: 0, release: 0.02 });
+        const g = new Tone.Gain(0.4);
+        o.chain(e, g, drumBus);
+        o.start();
+        e.triggerAttackRelease(0.03);
+        track([o, e, g], 600);
+      },
+    },
+    {
+      name: "ping", tag: "FMSynth", c: "fm",
+      desc: "short FM sine — the bright tonal blip the app uses now",
+      play: () => {
+        const s = new Tone.FMSynth({
+          harmonicity: 5, modulationIndex: 12,
+          envelope: { attack: 0.001, decay: 0.3, sustain: 0, release: 0.2 },
+          modulationEnvelope: { attack: 0.001, decay: 0.15, sustain: 0, release: 0.1 },
+        }).connect(drumBus);
+        s.triggerAttackRelease("A5", 0.25);
+        track(s, 1200);
+      },
+    },
+  ];
+
+  // ---------------------------------------------------------------------------
+  // render
+  // ---------------------------------------------------------------------------
+  const GROUPS = [
+    { title: "Pads", blurb: "sustained chords — oscillator choice + unison stacking + movement", items: PADS },
+    { title: "Tonal / Keys", blurb: "Tone's synth voices — plucks, bells, leads, mallets", items: KEYS },
+    { title: "Drums", blurb: "fully synthesized — note how layering & synth choice reshape each role", items: DRUMS },
+  ];
+
+  const board = document.getElementById("board");
+  GROUPS.forEach((grp) => {
+    const sec = document.createElement("section");
+    sec.className = "group";
+    sec.innerHTML = `<h2>${grp.title}</h2><p>${grp.blurb}</p>`;
+    const grid = document.createElement("div");
+    grid.className = "grid";
+    grp.items.forEach((it) => {
+      const b = document.createElement("button");
+      b.className = "pad";
+      b.dataset.c = it.c;
+      b.innerHTML =
+        `<div><span class="name">${it.name}</span><span class="tag">${it.tag}</span></div>` +
+        `<div class="desc">${it.desc}</div>`;
+      b.addEventListener("click", async () => {
+        await ensure();
+        b.classList.add("flash");
+        setTimeout(() => b.classList.remove("flash"), 220);
+        try { it.play(); } catch (err) { console.error(it.name, err); }
+      });
+      grid.appendChild(b);
+    });
+    sec.appendChild(grid);
+    board.appendChild(sec);
+  });
+</script>
