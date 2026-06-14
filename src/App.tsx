@@ -146,11 +146,17 @@ export default function App() {
   // keep the address bar a live, shareable link to the current patch. drop ?e
   // while the mix still equals what the seed implies — it's only needed once
   // the user actually edits a fader away from the seed's preset.
+  // debounced: fast fader drags fire dozens of param changes/sec, and Chrome
+  // throttles history.replaceState to ~100 calls per 10s (throws past that,
+  // crashing the app with no error boundary).
   useEffect(() => {
-    const q = new URLSearchParams({ s: seed });
-    const e = encodeEngine(params);
-    if (e !== encodeEngine(paramsForSeed(seed))) q.set("e", e);
-    window.history.replaceState(null, "", `${window.location.pathname}?${q}`);
+    const t = setTimeout(() => {
+      const q = new URLSearchParams({ s: seed });
+      const e = encodeEngine(params);
+      if (e !== encodeEngine(paramsForSeed(seed))) q.set("e", e);
+      window.history.replaceState(null, "", `${window.location.pathname}?${q}`);
+    }, 300);
+    return () => clearTimeout(t);
   }, [params, seed]);
 
   useEffect(() => {
