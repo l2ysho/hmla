@@ -1,6 +1,7 @@
 import { faBluesky, faFacebook, faXTwitter } from "@fortawesome/free-brands-svg-icons";
 import { faCheck, faCopy } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useRef, useState } from "react";
+import * as Tone from "tone";
 import { Badge } from "./components/ds/Badge";
 import { FaIcon } from "./components/FaIcon";
 import { Button } from "./components/ds/Button";
@@ -185,6 +186,11 @@ export default function App() {
     setBusy(true);
     setErr(null);
     try {
+      // Safari only unlocks the AudioContext when resume() runs synchronously
+      // inside the user gesture — so start it here, before any await. Awaiting
+      // first (the guard below, or buildEngine) drops the gesture and the
+      // context stays suspended = silence on Safari (Chrome is lenient).
+      await Tone.start();
       // small guard so a rapid stop->play doesn't overlap with the prior
       // engine's audio nodes still tearing down
       await new Promise((r) => setTimeout(r, 150));
