@@ -46,6 +46,13 @@ export function useVisual(
     };
     resize();
     window.addEventListener("resize", resize);
+    // While the tab is hidden, rAF is paused but the engine keeps emitting — so
+    // drop the stale backlog on return instead of draining (and flooding the
+    // canvas with) a whole session's worth of events in one frame.
+    const onVisible = () => {
+      if (document.visibilityState === "visible") eventsRef.current.length = 0;
+    };
+    document.addEventListener("visibilitychange", onVisible);
     const W = () => canvas.getBoundingClientRect().width;
     const H = () => canvas.getBoundingClientRect().height;
 
@@ -104,6 +111,8 @@ export function useVisual(
           });
         }
       }
+      // hard cap so a burst can never fill the canvas; keep the most recent.
+      if (particles.length > 500) particles.splice(0, particles.length - 500);
       ctx.clearRect(0, 0, W(), H());
       particles = particles.filter((p) => p.life > 0);
       for (const p of particles) {
@@ -140,6 +149,7 @@ export function useVisual(
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, [playing, canvasRef, eventsRef, theme]);
 }

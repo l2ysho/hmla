@@ -199,6 +199,10 @@ export default function App() {
         () => paramsRef.current,
         (ev) => {
           eventsRef.current.push(ev);
+          // bound the buffer — a backgrounded tab pauses the rAF visualizer while
+          // the engine keeps emitting, so without a cap this grows without limit
+          // (memory) and floods the canvas on return.
+          if (eventsRef.current.length > 180) eventsRef.current.shift();
           if (ev.type === "note") {
             setLastNotes((prev) => {
               const next = [...prev];
