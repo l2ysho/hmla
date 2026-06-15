@@ -18,6 +18,9 @@ body {
   font-family: var(--font-mono);
   min-height: 100%;
   display: grid;
+  /* minmax(0, …) bounds the column to the viewport so a wide child (e.g. the
+   * scrollable presets row) can't push the whole chassis past screen width */
+  grid-template-columns: minmax(0, 1fr);
   place-items: start center;
   padding: clamp(16px, 3vw, 48px);
   box-sizing: border-box;
@@ -31,6 +34,7 @@ body {
 .stage {
   width: 100%;
   max-width: 760px;
+  min-width: 0;
 }
 
 /* ============================== THE CHASSIS ==============================
@@ -112,7 +116,7 @@ body {
 }
 
 /* engraved seam between lightweight zones (no pocket of their own) */
-.controlbar,
+.deck,
 .screen,
 .hint {
   position: relative;
@@ -307,10 +311,6 @@ body {
   justify-content: space-between;
   gap: var(--space-3);
 }
-.module--row {
-  grid-template-columns: 1fr;
-  gap: var(--space-4);
-}
 
 /* engine fader rack — 8 channels in a single row */
 .rack {
@@ -351,8 +351,8 @@ body {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  flex-wrap: nowrap;
-  overflow-x: auto;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 .presets__label {
   margin-right: var(--space-1);
@@ -400,12 +400,7 @@ body {
 }
 
 /* seed entry — fixed hmla- prefix, digits-only suffix (no arbitrary words can
- * reach a shared link / social card) */
-.seedbox {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
+ * reach a shared link / social card). lives inline in the transport bar. */
 .seedfield {
   display: flex;
   align-items: center;
@@ -425,7 +420,8 @@ body {
   user-select: none;
 }
 .seedfield__digits {
-  width: 64px;
+  width: 60px;
+  min-width: 0;
   padding: 0;
   border: 0;
   background: transparent;
@@ -489,20 +485,32 @@ body {
   border-color: var(--accent);
 }
 
-/* ---- transport control bar (top) ---- */
-.controlbar {
+/* ---- top control deck: transport + seed, then presets / share ---- */
+.deck {
+  display: grid;
+  gap: var(--space-4);
+}
+.deck__transport {
   display: flex;
   justify-content: center;
+}
+/* the merged transport (play/stop + time + seed + reseed) must wrap on narrow
+ * screens instead of forcing the whole chassis wider than the viewport */
+.deck__transport .hmla-transport {
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 100%;
+}
+.deck__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
 }
 .tport-time {
   font-size: var(--fs-body);
   color: var(--text-hi);
-  padding: 0 var(--space-2);
-  white-space: nowrap;
-}
-.tport-seed {
-  font-size: var(--fs-caption);
-  color: var(--text-muted);
   padding: 0 var(--space-2);
   white-space: nowrap;
 }
@@ -521,8 +529,5 @@ body {
   .rack {
     grid-template-columns: repeat(4, 1fr);
     row-gap: var(--space-6);
-  }
-  .tport-seed {
-    display: none;
   }
 }

@@ -338,12 +338,90 @@ export default function App() {
           </p>
         ) : null}
 
-        <div className="controlbar">
-          <Transport playing={playing} onPlayToggle={toggle} onStop={stop} showSkip={false}>
-            <span className="hmla-tnum tport-time">{fmt(elapsed)}</span>
-            <span className="tport-seed hmla-tnum">{seed}</span>
-          </Transport>
-        </div>
+        <section className="deck">
+          <div className="deck__transport">
+            <Transport playing={playing} onPlayToggle={toggle} onStop={stop} showSkip={false}>
+              <span className="hmla-tnum tport-time">{fmt(elapsed)}</span>
+              <div className="seedfield" data-disabled={playing ? "true" : "false"}>
+                <span className="seedfield__prefix hmla-tnum">hmla-</span>
+                <input
+                  className="seedfield__digits hmla-tnum"
+                  value={seedDigits(seed)}
+                  onChange={(e) => setSeed(makeSeed(seedDigits(e.target.value)))}
+                  onBlur={(e) => commitSeed(makeSeed(seedDigits(e.target.value)))}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                  }}
+                  disabled={playing}
+                  spellCheck={false}
+                  inputMode="numeric"
+                  maxLength={6}
+                  aria-label="seed number"
+                />
+              </div>
+              <IconButton aria-label="regenerate seed" onClick={reseed} disabled={playing}>
+                ↻
+              </IconButton>
+            </Transport>
+          </div>
+
+          <div className="deck__row">
+            <div className="presets">
+              <span className="hmla-label presets__label">preset</span>
+              {Object.keys(PRESETS).map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  className="preset"
+                  data-active={activePreset === name ? "true" : "false"}
+                  onClick={() => applyPreset(name)}
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+            <div className="sharebar">
+              <span className="hmla-label sharebar__label">share</span>
+              <button
+                type="button"
+                className="sharebtn"
+                aria-label="share on X"
+                title="share on X"
+                onClick={() => openShare("x")}
+              >
+                <FaIcon icon={faXTwitter} className="sharebtn__icon" />
+              </button>
+              <button
+                type="button"
+                className="sharebtn"
+                aria-label="share on Bluesky"
+                title="share on Bluesky"
+                onClick={() => openShare("bsky")}
+              >
+                <FaIcon icon={faBluesky} className="sharebtn__icon" />
+              </button>
+              <button
+                type="button"
+                className="sharebtn"
+                aria-label="share on Facebook"
+                title="share on Facebook"
+                onClick={() => openShare("fb")}
+              >
+                <FaIcon icon={faFacebook} className="sharebtn__icon" />
+              </button>
+              <button
+                type="button"
+                className="sharebtn"
+                data-copied={copied ? "true" : "false"}
+                aria-label={copied ? "link copied" : "copy link"}
+                title={copied ? "link copied" : "copy link"}
+                onClick={copyLink}
+              >
+                <FaIcon icon={copied ? faCheck : faCopy} className="sharebtn__icon" />
+              </button>
+            </div>
+          </div>
+        </section>
 
         <div className="screen">
           <div className="screen__display">
@@ -410,86 +488,6 @@ export default function App() {
               title="octave-up reverb halo — adds a bright, airy tail above the drone"
             />
             <span className="aux__hint">octave-up reverb halo</span>
-          </div>
-        </section>
-
-        <section className="module module--row">
-          <div className="presets">
-            <span className="hmla-label presets__label">preset</span>
-            {Object.keys(PRESETS).map((name) => (
-              <button
-                key={name}
-                type="button"
-                className="preset"
-                data-active={activePreset === name ? "true" : "false"}
-                onClick={() => applyPreset(name)}
-              >
-                {name}
-              </button>
-            ))}
-          </div>
-          <div className="seedbox">
-            <span className="hmla-field__label">seed</span>
-            <div className="seedfield" data-disabled={playing ? "true" : "false"}>
-              <span className="seedfield__prefix hmla-tnum">hmla-</span>
-              <input
-                className="seedfield__digits hmla-tnum"
-                value={seedDigits(seed)}
-                onChange={(e) => setSeed(makeSeed(seedDigits(e.target.value)))}
-                onBlur={(e) => commitSeed(makeSeed(seedDigits(e.target.value)))}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-                }}
-                disabled={playing}
-                spellCheck={false}
-                inputMode="numeric"
-                maxLength={6}
-                aria-label="seed number"
-              />
-            </div>
-            <IconButton aria-label="regenerate seed" onClick={reseed} disabled={playing}>
-              ↻
-            </IconButton>
-          </div>
-          <div className="sharebar">
-            <span className="hmla-label sharebar__label">share</span>
-            <button
-              type="button"
-              className="sharebtn"
-              aria-label="share on X"
-              title="share on X"
-              onClick={() => openShare("x")}
-            >
-              <FaIcon icon={faXTwitter} className="sharebtn__icon" />
-            </button>
-            <button
-              type="button"
-              className="sharebtn"
-              aria-label="share on Bluesky"
-              title="share on Bluesky"
-              onClick={() => openShare("bsky")}
-            >
-              <FaIcon icon={faBluesky} className="sharebtn__icon" />
-            </button>
-            <button
-              type="button"
-              className="sharebtn"
-              aria-label="share on Facebook"
-              title="share on Facebook"
-              onClick={() => openShare("fb")}
-            >
-              <FaIcon icon={faFacebook} className="sharebtn__icon" />
-            </button>
-            <button
-              type="button"
-              className="sharebtn"
-              data-copied={copied ? "true" : "false"}
-              aria-label={copied ? "link copied" : "copy link"}
-              title={copied ? "link copied" : "copy link"}
-              onClick={copyLink}
-            >
-              <FaIcon icon={copied ? faCheck : faCopy} className="sharebtn__icon" />
-            </button>
           </div>
         </section>
 
