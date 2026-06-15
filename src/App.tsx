@@ -1,5 +1,6 @@
 import { faBluesky, faFacebook, faXTwitter } from "@fortawesome/free-brands-svg-icons";
 import { faCheck, faCopy } from "@fortawesome/free-solid-svg-icons";
+import { Analytics } from "@vercel/analytics/react";
 import { useEffect, useRef, useState } from "react";
 import * as Tone from "tone";
 import { Badge } from "./components/ds/Badge";
@@ -499,6 +500,7 @@ export default function App() {
             : "same seed + same settings = same patch, every time"}
         </p>
       </div>
+      <Analytics />
     </div>
   );
 }
