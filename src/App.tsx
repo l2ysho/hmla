@@ -284,7 +284,7 @@ export default function App() {
   };
   const openShare = (target: "x" | "bsky" | "fb") => {
     const url = shareLink();
-    const text = `${seed} #hmla`;
+    const text = `listening to ${seed} — generative ambient on hmla #hmla`;
     const enc = encodeURIComponent;
     const intent = {
       x: `https://twitter.com/intent/tweet?text=${enc(text)}&url=${enc(url)}`,
@@ -323,65 +323,15 @@ export default function App() {
             <span className="brand__ver">fw {__APP_VERSION__}</span>
           </div>
           <div className="head-tools">
-            <Badge tone={playing ? "accent" : "default"} dot>
-              {playing ? "live" : "idle"}
-            </Badge>
-            <Button variant="ghost" size="sm" onClick={toggleTheme}>
-              {theme === "dark" ? "light" : "dark"}
-            </Button>
-          </div>
-        </header>
-
-        {err ? (
-          <p className="error">
-            <span className="error__label">signal error</span> {err}
-          </p>
-        ) : null}
-
-        <section className="deck">
-          <div className="deck__transport">
-            <Transport playing={playing} onPlayToggle={toggle} onStop={stop} showSkip={false}>
-              <span className="hmla-tnum tport-time">{fmt(elapsed)}</span>
-              <div className="seedfield" data-disabled={playing ? "true" : "false"}>
-                <span className="seedfield__prefix hmla-tnum">hmla-</span>
-                <input
-                  className="seedfield__digits hmla-tnum"
-                  value={seedDigits(seed)}
-                  onChange={(e) => setSeed(makeSeed(seedDigits(e.target.value)))}
-                  onBlur={(e) => commitSeed(makeSeed(seedDigits(e.target.value)))}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-                  }}
-                  disabled={playing}
-                  spellCheck={false}
-                  inputMode="numeric"
-                  maxLength={6}
-                  aria-label="seed number"
-                />
-              </div>
-              <IconButton aria-label="regenerate seed" onClick={reseed} disabled={playing}>
-                ↻
-              </IconButton>
-            </Transport>
-          </div>
-
-          <div className="deck__row">
-            <div className="presets">
-              <span className="hmla-label presets__label">preset</span>
-              {Object.keys(PRESETS).map((name) => (
-                <button
-                  key={name}
-                  type="button"
-                  className="preset"
-                  data-active={activePreset === name ? "true" : "false"}
-                  onClick={() => applyPreset(name)}
-                >
-                  {name}
-                </button>
-              ))}
+            <div className="head-tools__row">
+              <Button variant="ghost" size="sm" onClick={toggleTheme}>
+                {theme === "dark" ? "light" : "dark"}
+              </Button>
+              <Badge tone={playing ? "accent" : "default"} dot>
+                {playing ? "live" : "idle"}
+              </Badge>
             </div>
             <div className="sharebar">
-              <span className="hmla-label sharebar__label">share</span>
               <button
                 type="button"
                 className="sharebtn"
@@ -420,6 +370,54 @@ export default function App() {
                 <FaIcon icon={copied ? faCheck : faCopy} className="sharebtn__icon" />
               </button>
             </div>
+          </div>
+        </header>
+
+        {err ? (
+          <p className="error">
+            <span className="error__label">signal error</span> {err}
+          </p>
+        ) : null}
+
+        <section className="deck">
+          <div className="deck__transport">
+            <Transport playing={playing} onPlayToggle={toggle} onStop={stop} showSkip={false}>
+              <span className="hmla-tnum tport-time">{fmt(elapsed)}</span>
+              <div className="seedfield" data-disabled={playing ? "true" : "false"}>
+                <span className="seedfield__prefix hmla-tnum">hmla-</span>
+                <input
+                  className="seedfield__digits hmla-tnum"
+                  value={seedDigits(seed)}
+                  onChange={(e) => setSeed(makeSeed(seedDigits(e.target.value)))}
+                  onBlur={(e) => commitSeed(makeSeed(seedDigits(e.target.value)))}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                  }}
+                  disabled={playing}
+                  spellCheck={false}
+                  inputMode="numeric"
+                  maxLength={6}
+                  aria-label="seed number"
+                />
+              </div>
+              <IconButton aria-label="regenerate seed" onClick={reseed} disabled={playing}>
+                ↻
+              </IconButton>
+            </Transport>
+          </div>
+
+          <div className="presets">
+            {Object.keys(PRESETS).map((name) => (
+              <button
+                key={name}
+                type="button"
+                className="preset"
+                data-active={activePreset === name ? "true" : "false"}
+                onClick={() => applyPreset(name)}
+              >
+                {name}
+              </button>
+            ))}
           </div>
         </section>
 
