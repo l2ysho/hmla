@@ -11,12 +11,18 @@ export const config = { matcher: "/" };
 // `rewrites` are evaluated *after* the filesystem, and "/" is already served by
 // the static index.html, so a rewrite for "/" never fires. Middleware runs
 // before static file serving.
-const CRAWLER =
-  /bot|crawler|spider|facebookexternalhit|Bluesky Cardyb|Twitterbot|Slackbot|Discordbot|TelegramBot|WhatsApp|LinkedInBot|Mastodon|Pinterest|Embedly|Iframely|redditbot/i;
+//
+// Search engine bots (Googlebot, Bingbot, etc.) are explicitly excluded: they
+// render JS and need the real SPA, not a metadata-only shell with an empty body.
+const SEARCH_BOT =
+  /Googlebot|bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|Sogou|Exabot|ia_archiver/i;
+
+const SOCIAL_CRAWLER =
+  /facebookexternalhit|Bluesky Cardyb|Twitterbot|Slackbot|Discordbot|TelegramBot|WhatsApp|LinkedInBot|Mastodon|Pinterest|Embedly|Iframely|redditbot/i;
 
 export default function middleware(request: Request) {
   const ua = request.headers.get("user-agent") ?? "";
-  if (!CRAWLER.test(ua)) return next();
+  if (SEARCH_BOT.test(ua) || !SOCIAL_CRAWLER.test(ua)) return next();
   const url = new URL(request.url);
   return rewrite(new URL(`/api/share${url.search}`, url));
 }

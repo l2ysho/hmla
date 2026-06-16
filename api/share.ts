@@ -24,7 +24,7 @@ export default function handler(req: Request) {
   if (e) pageUrl.searchParams.set("e", e);
 
   const title = `hmla — ${escapeHtml(seed)}`;
-  const description = "generative ambient — seeded, ever-evolving. open this patch in hmla.";
+  const description = `Listen to ${escapeHtml(seed)} — a unique generative ambient patch on hmla. Browser-based, no downloads needed.`;
 
   const html = `<!doctype html>
 <html lang="en">
@@ -37,6 +37,7 @@ export default function handler(req: Request) {
     <meta property="og:description" content="${description}" />
     <meta property="og:image" content="${ogImage.toString()}" />
     <meta property="og:url" content="${pageUrl.toString()}" />
+    <link rel="canonical" href="${pageUrl.toString()}" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${title}" />
     <meta name="twitter:description" content="${description}" />

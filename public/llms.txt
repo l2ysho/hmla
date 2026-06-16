@@ -1,0 +1,12 @@
+# hmla
+
+hmla is a browser-based generative ambient music synthesizer by Richard Solár.
+It creates infinite, slowly-evolving ambient music from a short numeric seed (e.g. hmla-1234).
+No samples or audio files — everything is synthesized live using Web Audio API via Tone.js.
+
+The same seed always produces the same musical piece. Patches are shareable via URL.
+Eight live faders (density, brightness, space, chaos, grain, sub, pulse, lofi) reshape sound in real time.
+A shimmer toggle adds an octave-up reverb halo. Presets: calm, dense, puls, broken tape.
+Output can be recorded and downloaded as WAV.
+
+Live: https://hmla.richard.solar
