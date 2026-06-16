@@ -62,9 +62,14 @@ export async function buildEngine(
 
   /* --- master chain --- */
   const limiter = new Tone.Limiter(-1).toDestination();
+  // single master gain in front of the limiter — every path (drone wash + dry
+  // rhythm) routes through it, so stop() can ramp the whole mix to silence in
+  // one place for a smooth fade-out instead of a hard cut.
+  const master = new Tone.Gain(1);
+  master.connect(limiter);
   const reverb = new Tone.Reverb({ decay: space.decay, preDelay: space.preDelay, wet: 0.5 });
   await reverb.generate();
-  reverb.connect(limiter);
+  reverb.connect(master);
   const delay = new Tone.PingPongDelay({ delayTime: space.delayTime, feedback: 0.45, wet: 0.25 });
   delay.connect(reverb);
   const crusher = new Tone.BitCrusher(8);
@@ -330,7 +335,7 @@ export async function buildEngine(
   rhythmBus.connect(crusher);
   const rhythmDry = new Tone.Gain(0);
   rhythmBus.connect(rhythmDry);
-  rhythmDry.connect(limiter);
+  rhythmDry.connect(master);
 
   const gk = groove.kit;
 
@@ -619,8 +624,11 @@ export async function buildEngine(
     voices.forEach((v) =>
       v.gain.gain.rampTo((0.09 + (1 - p.grain * 0.45) * 0.13) * arch.drone, 0.6),
     );
-    rhythmBus.gain.rampTo(Math.pow(p.pulse, 1.1) * 0.95, 0.6);
-    rhythmDry.gain.rampTo(p.pulse * 0.4, 0.6);
+    // keep the pulse forward and dry: most of its level comes from the dry path
+    // straight to master, and only a little feeds the reverb/delay wet chain —
+    // so the drums don't wash out as the space fader (or a roomy seed) opens up.
+    rhythmBus.gain.rampTo(Math.pow(p.pulse, 1.1) * 0.5, 0.6);
+    rhythmDry.gain.rampTo(p.pulse * 0.72, 0.6);
     subLevel.gain.rampTo(p.sub * 1.6, 0.6);
     setShimmer(p.shimmer);
     crusher.wet.value = clamp(0.05 + p.lofi * 0.5 + space.crushBias, 0, 0.9);
@@ -629,7 +637,10 @@ export async function buildEngine(
   apply(getParams());
   bus.gain.rampTo(0.85, 2.5);
 
-  function dispose() {
+  // fade: ramp the whole mix to silence before tearing down, so stop() lets the
+  // current notes + reverb tail ring out instead of hard-cutting. Timers and the
+  // transport stop right away so nothing *new* triggers during the fade.
+  function dispose(fade = 1.6) {
     timers.tos.forEach(clearTimeout);
     timers.ivs.forEach(clearInterval);
     try {
@@ -639,47 +650,51 @@ export async function buildEngine(
     } catch {
       // ignore
     }
-    bus.gain.rampTo(0, 0.35);
-    setTimeout(() => {
-      [
-        limiter,
-        reverb,
-        delay,
-        crusher,
-        filter,
-        bus,
-        filtLfo,
-        sub,
-        subGain,
-        subLevel,
-        subLfo,
-        noise,
-        noiseFilter,
-        noiseGain,
-        noiseLfo,
-        noiseFiltLfo,
-        grainBus,
-        rhythmBus,
-        rhythmDry,
-        ...drumNodes,
-      ].forEach((n) => n.dispose());
-      voices.forEach((v) => {
-        v.osc.dispose();
-        v.env.dispose();
-        v.pan.dispose();
-        v.gain.dispose();
-        v.panLfo.dispose();
-      });
-      if (grainA) {
-        grainA.player.dispose();
-        grainA.g.dispose();
-      }
-      if (shimmer) {
-        shimmer.ps.dispose();
-        shimmer.g.dispose();
-      }
-      recorder?.dispose();
-    }, 450);
+    master.gain.rampTo(0, fade);
+    setTimeout(
+      () => {
+        [
+          limiter,
+          master,
+          reverb,
+          delay,
+          crusher,
+          filter,
+          bus,
+          filtLfo,
+          sub,
+          subGain,
+          subLevel,
+          subLfo,
+          noise,
+          noiseFilter,
+          noiseGain,
+          noiseLfo,
+          noiseFiltLfo,
+          grainBus,
+          rhythmBus,
+          rhythmDry,
+          ...drumNodes,
+        ].forEach((n) => n.dispose());
+        voices.forEach((v) => {
+          v.osc.dispose();
+          v.env.dispose();
+          v.pan.dispose();
+          v.gain.dispose();
+          v.panLfo.dispose();
+        });
+        if (grainA) {
+          grainA.player.dispose();
+          grainA.g.dispose();
+        }
+        if (shimmer) {
+          shimmer.ps.dispose();
+          shimmer.g.dispose();
+        }
+        recorder?.dispose();
+      },
+      fade * 1000 + 250,
+    );
   }
 
   return {

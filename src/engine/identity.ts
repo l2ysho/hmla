@@ -330,3 +330,27 @@ export function deriveIdentity(seed: string): SeedIdentity {
 
   return { arch, flt, space, fQ, octaveMul, palette, scaleIdx, groove, kit, padTone };
 }
+
+export interface SeedPreview {
+  key: string;
+  bpm: number;
+  character: string;
+}
+
+/**
+ * The readouts a seed implies *before* its audio engine is built — its starting
+ * key, tempo and character. Lets the idle UI preview a seed (e.g. after a
+ * reseed) without spinning up Tone.js. Kept in lock-step with buildEngine: the
+ * bpm mirrors the engine's first `<seed>-rhythm` draw so the preview matches
+ * exactly what playback reports.
+ */
+export function previewSeed(seed: string): SeedPreview {
+  const { arch, space, groove, scaleIdx } = deriveIdentity(seed);
+  const rrnd = makeRng(`${seed}-rhythm`);
+  const bpm = Math.round(groove.bpm[0] + rrnd() * (groove.bpm[1] - groove.bpm[0]));
+  return {
+    key: SCALES[scaleIdx].name,
+    bpm,
+    character: `${arch.name} · ${space.name} · ${groove.name}`,
+  };
+}

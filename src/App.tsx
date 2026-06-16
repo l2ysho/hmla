@@ -14,6 +14,7 @@ import { Tag } from "./components/ds/Tag";
 import { Transport } from "./components/ds/Transport";
 import { SignalMark } from "./components/SignalMark";
 import { buildEngine } from "./engine/buildEngine";
+import { previewSeed } from "./engine/identity";
 import { PRESETS, VOICE_COLORS } from "./engine/constants";
 import { makeRng } from "./engine/prng";
 import { canonSeed, makeSeed, randomSeed, seedDigits } from "./engine/seed";
@@ -169,6 +170,18 @@ export default function App() {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
+  // While idle, preview the readouts the current seed implies (key/bpm/character)
+  // so a reseed updates the indicators immediately — without building the engine.
+  // While playing, the live engine drives these, so this is a no-op.
+  useEffect(() => {
+    if (playing) return;
+    const pv = previewSeed(seed);
+    setKeyName(pv.key);
+    setBpm(pv.bpm);
+    setCharacter(pv.character);
+    setLastNotes(["—", "—", "—"]);
+  }, [seed, playing]);
+
   useEffect(() => {
     if (!recording) return;
     const t = setInterval(() => setRecSecs((s) => s + 1), 1000);
@@ -265,7 +278,6 @@ export default function App() {
     setPatch((s) => ({ ...s, params: { ...s.params, ...PRESETS[name] } }));
   };
   const setSeed = (next: string) => {
-    setCharacter(null); // character is only known once the engine for this seed builds
     setPatch((s) => ({ ...s, seed: next }));
   };
   // commit a seed and snap the mix to the preset that seed maps to (used by
@@ -274,7 +286,6 @@ export default function App() {
   const commitSeed = (next: string) => {
     const name = presetForSeed(next);
     setActivePreset(name);
-    setCharacter(null);
     setPatch((s) => ({ ...s, seed: next, params: { ...s.params, ...PRESETS[name] } }));
   };
   const reseed = () => commitSeed(randomSeed());
