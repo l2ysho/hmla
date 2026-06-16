@@ -24,15 +24,20 @@
     --amber: #fbbf24;
     --violet: #a78bfa;
   }
-  * { box-sizing: border-box; }
+  * {
+    box-sizing: border-box;
+  }
   body {
     margin: 0;
     padding: 0 0 64px;
-    background:
-      radial-gradient(120% 80% at 50% -10%, #1b1b22 0%, transparent 55%),
-      var(--ink-900);
+    background: radial-gradient(120% 80% at 50% -10%, #1b1b22 0%, transparent 55%), var(--ink-900);
     color: var(--text);
-    font: 14px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font:
+      14px/1.5 ui-monospace,
+      "SF Mono",
+      Menlo,
+      Consolas,
+      monospace;
     -webkit-font-smoothing: antialiased;
   }
   header {
@@ -47,11 +52,28 @@
     backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--line);
   }
-  .brand { font-weight: 700; letter-spacing: 0.18em; font-size: 18px; }
-  .brand b { color: var(--accent); }
-  header .hint { color: var(--faint); font-size: 12px; flex: 1; }
-  header .ctl { display: flex; align-items: center; gap: 8px; }
-  input[type="range"] { accent-color: var(--accent); width: 110px; }
+  .brand {
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    font-size: 18px;
+  }
+  .brand b {
+    color: var(--accent);
+  }
+  header .hint {
+    color: var(--faint);
+    font-size: 12px;
+    flex: 1;
+  }
+  header .ctl {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  input[type="range"] {
+    accent-color: var(--accent);
+    width: 110px;
+  }
   button.panic {
     font: inherit;
     color: var(--text);
@@ -61,10 +83,19 @@
     padding: 7px 14px;
     cursor: pointer;
   }
-  button.panic:hover { border-color: var(--accent); color: var(--accent); }
+  button.panic:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
 
-  main { padding: clamp(16px, 4vw, 40px); max-width: 1100px; margin: 0 auto; }
-  .group { margin-bottom: 36px; }
+  main {
+    padding: clamp(16px, 4vw, 40px);
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .group {
+    margin-bottom: 36px;
+  }
   .group > h2 {
     margin: 0 0 4px;
     font-size: 12px;
@@ -72,7 +103,11 @@
     text-transform: uppercase;
     color: var(--accent);
   }
-  .group > p { margin: 0 0 16px; color: var(--faint); font-size: 12px; }
+  .group > p {
+    margin: 0 0 16px;
+    color: var(--faint);
+    font-size: 12px;
+  }
   .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -87,12 +122,26 @@
     border-radius: 12px;
     padding: 14px 16px;
     cursor: pointer;
-    transition: transform 0.08s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+    transition:
+      transform 0.08s ease,
+      border-color 0.12s ease,
+      box-shadow 0.12s ease;
   }
-  .pad:hover { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
-  .pad:active { transform: translateY(1px) scale(0.99); }
-  .pad.flash { border-color: var(--accent); box-shadow: 0 0 22px -4px var(--accent); }
-  .pad .name { font-weight: 600; letter-spacing: 0.02em; }
+  .pad:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent) inset;
+  }
+  .pad:active {
+    transform: translateY(1px) scale(0.99);
+  }
+  .pad.flash {
+    border-color: var(--accent);
+    box-shadow: 0 0 22px -4px var(--accent);
+  }
+  .pad .name {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
   .pad .tag {
     float: right;
     font-size: 10px;
@@ -103,12 +152,26 @@
     border-radius: 4px;
     padding: 1px 6px;
   }
-  .pad[data-c="layer"] .tag { background: var(--accent); }
-  .pad[data-c="fm"] .tag { background: var(--cyan); }
-  .pad[data-c="metal"] .tag { background: var(--amber); }
-  .pad[data-c="noise"] .tag { background: var(--green); }
-  .pad[data-c="sub"] .tag { background: var(--violet); }
-  .pad .desc { color: var(--muted); font-size: 12px; margin-top: 5px; }
+  .pad[data-c="layer"] .tag {
+    background: var(--accent);
+  }
+  .pad[data-c="fm"] .tag {
+    background: var(--cyan);
+  }
+  .pad[data-c="metal"] .tag {
+    background: var(--amber);
+  }
+  .pad[data-c="noise"] .tag {
+    background: var(--green);
+  }
+  .pad[data-c="sub"] .tag {
+    background: var(--violet);
+  }
+  .pad .desc {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 5px;
+  }
 </style>
 
 <header>
@@ -154,13 +217,19 @@
     arr.forEach((n) => live.add(n));
     setTimeout(() => {
       arr.forEach((n) => {
-        try { n.dispose(); } catch {}
+        try {
+          n.dispose();
+        } catch {}
         live.delete(n);
       });
     }, ms);
   }
   document.getElementById("panic").addEventListener("click", () => {
-    live.forEach((n) => { try { n.dispose(); } catch {} });
+    live.forEach((n) => {
+      try {
+        n.dispose();
+      } catch {}
+    });
     live.clear();
   });
 
@@ -195,27 +264,73 @@
 
   const PADS = [
     {
-      name: "warm pad", tag: "saw ×3", c: "saw",
+      name: "warm pad",
+      tag: "saw ×3",
+      c: "saw",
       desc: "stacked detuned saws — the bread-and-butter analog pad",
-      play: () => padChord(CHORD, "sawtooth", 24, 3, { attack: 1.2, decay: 2, sustain: 0.8, release: 4 }, 0.12, 3),
+      play: () =>
+        padChord(
+          CHORD,
+          "sawtooth",
+          24,
+          3,
+          { attack: 1.2, decay: 2, sustain: 0.8, release: 4 },
+          0.12,
+          3,
+        ),
     },
     {
-      name: "super-saw", tag: "saw ×5", c: "saw",
+      name: "super-saw",
+      tag: "saw ×5",
+      c: "saw",
       desc: "wide 5-voice unison, big detune — lush and thick",
-      play: () => padChord(CHORD, "sawtooth", 40, 5, { attack: 0.8, decay: 2, sustain: 0.85, release: 5 }, 0.09, 3),
+      play: () =>
+        padChord(
+          CHORD,
+          "sawtooth",
+          40,
+          5,
+          { attack: 0.8, decay: 2, sustain: 0.85, release: 5 },
+          0.09,
+          3,
+        ),
     },
     {
-      name: "glass", tag: "tri hi", c: "tri",
+      name: "glass",
+      tag: "tri hi",
+      c: "tri",
       desc: "triangle stack up an octave — clean and bell-like",
-      play: () => padChord(CHORD_HI, "triangle", 14, 2, { attack: 1.4, decay: 3, sustain: 0.7, release: 5 }, 0.14, 3),
+      play: () =>
+        padChord(
+          CHORD_HI,
+          "triangle",
+          14,
+          2,
+          { attack: 1.4, decay: 3, sustain: 0.7, release: 5 },
+          0.14,
+          3,
+        ),
     },
     {
-      name: "hollow", tag: "square", c: "sqr",
+      name: "hollow",
+      tag: "square",
+      c: "sqr",
       desc: "square wave — woody, slightly reedy character",
-      play: () => padChord(CHORD, "square", 16, 2, { attack: 0.9, decay: 2, sustain: 0.7, release: 4 }, 0.08, 3),
+      play: () =>
+        padChord(
+          CHORD,
+          "square",
+          16,
+          2,
+          { attack: 0.9, decay: 2, sustain: 0.7, release: 4 },
+          0.08,
+          3,
+        ),
     },
     {
-      name: "PWM pad", tag: "pulse", c: "sub",
+      name: "PWM pad",
+      tag: "pulse",
+      c: "sub",
       desc: "pulse osc with width-LFO — shimmering, ’80s-synth movement",
       play: () => {
         const nodes = [];
@@ -234,20 +349,41 @@
       },
     },
     {
-      name: "tremolo pad", tag: "AM", c: "fm",
+      name: "tremolo pad",
+      tag: "AM",
+      c: "fm",
       desc: "saw stack through a tremolo — gentle pulsing amplitude",
       play: () => {
         const trem = new Tone.Tremolo(0.3, 0.6).start();
         trem.connect(reverb);
-        padChord(CHORD, "sawtooth", 22, 3, { attack: 1, decay: 2, sustain: 0.8, release: 4 }, 0.1, 3, trem);
+        padChord(
+          CHORD,
+          "sawtooth",
+          22,
+          3,
+          { attack: 1, decay: 2, sustain: 0.8, release: 4 },
+          0.1,
+          3,
+          trem,
+        );
         track(trem, 9000);
       },
     },
     {
-      name: "air", tag: "sine+noise", c: "noise",
+      name: "air",
+      tag: "sine+noise",
+      c: "noise",
       desc: "soft sine chord over a filtered pink-noise bed — breathy",
       play: () => {
-        padChord(CHORD_HI, "sine", 8, 2, { attack: 1.6, decay: 3, sustain: 0.7, release: 5 }, 0.12, 3);
+        padChord(
+          CHORD_HI,
+          "sine",
+          8,
+          2,
+          { attack: 1.6, decay: 3, sustain: 0.7, release: 5 },
+          0.12,
+          3,
+        );
         const noise = new Tone.Noise("pink").start();
         const filt = new Tone.Filter(700, "lowpass");
         const e = new Tone.AmplitudeEnvelope({ attack: 1.5, decay: 2, sustain: 0.6, release: 4 });
@@ -258,11 +394,29 @@
       },
     },
     {
-      name: "octave stack", tag: "sub+saw", c: "sub",
+      name: "octave stack",
+      tag: "sub+saw",
+      c: "sub",
       desc: "saw chord doubled an octave below — weighty, organ-ish",
       play: () => {
-        padChord(CHORD, "sawtooth", 20, 3, { attack: 1, decay: 2, sustain: 0.8, release: 4 }, 0.1, 3);
-        padChord(["C2", "G2"], "triangle", 10, 2, { attack: 1, decay: 2, sustain: 0.85, release: 4 }, 0.12, 3);
+        padChord(
+          CHORD,
+          "sawtooth",
+          20,
+          3,
+          { attack: 1, decay: 2, sustain: 0.8, release: 4 },
+          0.1,
+          3,
+        );
+        padChord(
+          ["C2", "G2"],
+          "triangle",
+          10,
+          2,
+          { attack: 1, decay: 2, sustain: 0.85, release: 4 },
+          0.12,
+          3,
+        );
       },
     },
   ];
@@ -273,11 +427,14 @@
   // ===========================================================================
   const KEYS = [
     {
-      name: "FM bell", tag: "FMSynth", c: "fm",
+      name: "FM bell",
+      tag: "FMSynth",
+      c: "fm",
       desc: "inharmonic FM — glassy bell / electric-piana tone",
       play: () => {
         const s = new Tone.PolySynth(Tone.FMSynth, {
-          harmonicity: 3.5, modulationIndex: 12,
+          harmonicity: 3.5,
+          modulationIndex: 12,
           envelope: { attack: 0.001, decay: 1.4, sustain: 0, release: 1.4 },
           modulationEnvelope: { attack: 0.001, decay: 0.5, sustain: 0, release: 0.5 },
         }).connect(reverb);
@@ -286,7 +443,9 @@
       },
     },
     {
-      name: "AM keys", tag: "AMSynth", c: "fm",
+      name: "AM keys",
+      tag: "AMSynth",
+      c: "fm",
       desc: "amplitude modulation — hollow, slightly metallic keys",
       play: () => {
         const s = new Tone.PolySynth(Tone.AMSynth, {
@@ -298,7 +457,9 @@
       },
     },
     {
-      name: "duo lead", tag: "DuoSynth", c: "fm",
+      name: "duo lead",
+      tag: "DuoSynth",
+      c: "fm",
       desc: "two detuned mono voices with vibrato — singing lead",
       play: () => {
         const s = new Tone.DuoSynth({ vibratoAmount: 0.3, harmonicity: 1.5 }).connect(reverb);
@@ -307,39 +468,59 @@
       },
     },
     {
-      name: "karplus pluck", tag: "Pluck", c: "noise",
+      name: "karplus pluck",
+      tag: "Pluck",
+      c: "noise",
       desc: "Karplus-Strong string model — nylon/harp-like pluck",
       play: () => {
-        const s = new Tone.PluckSynth({ attackNoise: 1, dampening: 2600, resonance: 0.95 }).connect(reverb);
-        ["C4", "E4", "G4", "C5"].forEach((n, i) =>
-          setTimeout(() => s.triggerAttack(n), i * 110));
+        const s = new Tone.PluckSynth({ attackNoise: 1, dampening: 2600, resonance: 0.95 }).connect(
+          reverb,
+        );
+        ["C4", "E4", "G4", "C5"].forEach((n, i) => setTimeout(() => s.triggerAttack(n), i * 110));
         track(s, 3000);
       },
     },
     {
-      name: "mono lead", tag: "MonoSynth", c: "saw",
+      name: "mono lead",
+      tag: "MonoSynth",
+      c: "saw",
       desc: "saw + filter envelope — classic subtractive synth lead",
       play: () => {
         const s = new Tone.MonoSynth({
           oscillator: { type: "sawtooth" },
           filter: { Q: 2, type: "lowpass" },
-          filterEnvelope: { attack: 0.02, decay: 0.3, sustain: 0.3, release: 1, baseFrequency: 300, octaves: 4 },
+          filterEnvelope: {
+            attack: 0.02,
+            decay: 0.3,
+            sustain: 0.3,
+            release: 1,
+            baseFrequency: 300,
+            octaves: 4,
+          },
           envelope: { attack: 0.01, decay: 0.3, sustain: 0.5, release: 1 },
         }).connect(reverb);
-        ["A3", "C4", "E4"].forEach((n, i) => setTimeout(() => s.triggerAttackRelease(n, 0.4), i * 180));
+        ["A3", "C4", "E4"].forEach((n, i) =>
+          setTimeout(() => s.triggerAttackRelease(n, 0.4), i * 180),
+        );
         track(s, 3500);
       },
     },
     {
-      name: "mallet", tag: "MetalSynth", c: "metal",
+      name: "mallet",
+      tag: "MetalSynth",
+      c: "metal",
       desc: "tuned MetalSynth — vibraphone / kalimba mallet hit",
       play: () => {
         const s = new Tone.MetalSynth({
-          harmonicity: 8, modulationIndex: 20, resonance: 800, octaves: 1.2,
+          harmonicity: 8,
+          modulationIndex: 20,
+          resonance: 800,
+          octaves: 1.2,
           envelope: { attack: 0.001, decay: 0.8, release: 0.4 },
         }).connect(reverb);
         ["C5", "G5", "C6"].forEach((n, i) =>
-          setTimeout(() => s.triggerAttackRelease(n, 0.5), i * 150));
+          setTimeout(() => s.triggerAttackRelease(n, 0.5), i * 150),
+        );
         track(s, 3000);
       },
     },
@@ -352,11 +533,14 @@
   const DRUMS = [
     // ---- kicks: three ways to build the same role ----
     {
-      name: "kick · membrane", tag: "1 synth", c: "sub",
+      name: "kick · membrane",
+      tag: "1 synth",
+      c: "sub",
       desc: "Tone.MembraneSynth alone — soft, rounded (what the app uses now)",
       play: () => {
         const k = new Tone.MembraneSynth({
-          pitchDecay: 0.05, octaves: 4,
+          pitchDecay: 0.05,
+          octaves: 4,
           envelope: { attack: 0.001, decay: 0.4, sustain: 0, release: 0.4 },
         }).connect(drumBus);
         k.triggerAttackRelease("C1", "8n");
@@ -364,11 +548,18 @@
       },
     },
     {
-      name: "kick · synth body", tag: "pitch env", c: "sub",
+      name: "kick · synth body",
+      tag: "pitch env",
+      c: "sub",
       desc: "bare sine with a fast downward pitch sweep — the 808 'boom'",
       play: () => {
         const o = new Tone.Oscillator(120, "sine");
-        const e = new Tone.AmplitudeEnvelope({ attack: 0.001, decay: 0.35, sustain: 0, release: 0.05 });
+        const e = new Tone.AmplitudeEnvelope({
+          attack: 0.001,
+          decay: 0.35,
+          sustain: 0,
+          release: 0.05,
+        });
         const g = new Tone.Gain(0.9);
         o.chain(e, g, drumBus);
         o.start();
@@ -379,12 +570,19 @@
       },
     },
     {
-      name: "kick · layered", tag: "body+click", c: "layer",
+      name: "kick · layered",
+      tag: "body+click",
+      c: "layer",
       desc: "synth body + a high noise transient — punchy, defined attack",
       play: () => {
         // body
         const o = new Tone.Oscillator(130, "sine");
-        const eo = new Tone.AmplitudeEnvelope({ attack: 0.001, decay: 0.34, sustain: 0, release: 0.05 });
+        const eo = new Tone.AmplitudeEnvelope({
+          attack: 0.001,
+          decay: 0.34,
+          sustain: 0,
+          release: 0.05,
+        });
         const go = new Tone.Gain(0.9);
         o.chain(eo, go, drumBus);
         o.start();
@@ -405,11 +603,18 @@
     },
     // ---- snare / clap: the missing colours ----
     {
-      name: "snare", tag: "tone+noise", c: "layer",
+      name: "snare",
+      tag: "tone+noise",
+      c: "layer",
       desc: "triangle body + bandpassed noise burst layered together",
       play: () => {
         const o = new Tone.Oscillator(180, "triangle");
-        const eo = new Tone.AmplitudeEnvelope({ attack: 0.001, decay: 0.12, sustain: 0, release: 0.05 });
+        const eo = new Tone.AmplitudeEnvelope({
+          attack: 0.001,
+          decay: 0.12,
+          sustain: 0,
+          release: 0.05,
+        });
         const go = new Tone.Gain(0.5);
         o.chain(eo, go, drumBus);
         o.start();
@@ -427,7 +632,9 @@
       },
     },
     {
-      name: "clap", tag: "multi-tap", c: "noise",
+      name: "clap",
+      tag: "multi-tap",
+      c: "noise",
       desc: "filtered noise retriggered 4× ~10ms apart — the clap 'spread'",
       play: () => {
         const n = new Tone.NoiseSynth({
@@ -439,13 +646,16 @@
         const g = new Tone.Gain(0.5);
         n.chain(bp, g, drumBus);
         [0, 10, 20, 32].forEach((ms, i) =>
-          setTimeout(() => n.triggerAttackRelease(i === 3 ? 0.18 : 0.03), ms));
+          setTimeout(() => n.triggerAttackRelease(i === 3 ? 0.18 : 0.03), ms),
+        );
         track([n, bp, g], 1200);
       },
     },
     // ---- hats / cymbals: noise vs metal ----
     {
-      name: "closed hat · noise", tag: "noise", c: "noise",
+      name: "closed hat · noise",
+      tag: "noise",
+      c: "noise",
       desc: "white noise through a highpass — soft 'tss' (app's current hat)",
       play: () => {
         const make = () => {
@@ -463,12 +673,17 @@
       },
     },
     {
-      name: "closed hat · metal", tag: "MetalSynth", c: "metal",
+      name: "closed hat · metal",
+      tag: "MetalSynth",
+      c: "metal",
       desc: "6 inharmonic squares (the real 808 hat algorithm) — metallic tick",
       play: () => {
         const make = () => {
           const m = new Tone.MetalSynth({
-            harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5,
+            harmonicity: 5.1,
+            modulationIndex: 32,
+            resonance: 4000,
+            octaves: 1.5,
             envelope: { attack: 0.001, decay: 0.05, release: 0.01 },
           });
           const g = new Tone.Gain(0.3);
@@ -480,11 +695,16 @@
       },
     },
     {
-      name: "open hat · metal", tag: "MetalSynth", c: "metal",
+      name: "open hat · metal",
+      tag: "MetalSynth",
+      c: "metal",
       desc: "same engine, long decay — sizzling open hi-hat",
       play: () => {
         const m = new Tone.MetalSynth({
-          harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5,
+          harmonicity: 5.1,
+          modulationIndex: 32,
+          resonance: 4000,
+          octaves: 1.5,
           envelope: { attack: 0.001, decay: 0.4, release: 0.2 },
         });
         const g = new Tone.Gain(0.3);
@@ -494,11 +714,16 @@
       },
     },
     {
-      name: "ride / cymbal", tag: "MetalSynth", c: "metal",
+      name: "ride / cymbal",
+      tag: "MetalSynth",
+      c: "metal",
       desc: "low harmonicity, long tail — shimmering cymbal wash",
       play: () => {
         const m = new Tone.MetalSynth({
-          harmonicity: 3.4, modulationIndex: 40, resonance: 3000, octaves: 2,
+          harmonicity: 3.4,
+          modulationIndex: 40,
+          resonance: 3000,
+          octaves: 2,
           envelope: { attack: 0.002, decay: 1.4, release: 0.6 },
         });
         const g = new Tone.Gain(0.22);
@@ -509,24 +734,35 @@
     },
     // ---- perc ----
     {
-      name: "tom", tag: "membrane", c: "sub",
+      name: "tom",
+      tag: "membrane",
+      c: "sub",
       desc: "MembraneSynth tuned up with less pitch decay — round tom",
       play: () => {
         const t = new Tone.MembraneSynth({
-          pitchDecay: 0.08, octaves: 3,
+          pitchDecay: 0.08,
+          octaves: 3,
           envelope: { attack: 0.001, decay: 0.3, sustain: 0, release: 0.2 },
         }).connect(drumBus);
         ["G2", "C3", "E3"].forEach((n, i) =>
-          setTimeout(() => t.triggerAttackRelease(n, "8n"), i * 180));
+          setTimeout(() => t.triggerAttackRelease(n, "8n"), i * 180),
+        );
         track(t, 2000);
       },
     },
     {
-      name: "rim / click", tag: "blip", c: "layer",
+      name: "rim / click",
+      tag: "blip",
+      c: "layer",
       desc: "ultra-short pitched blip — rimshot / woodblock accent",
       play: () => {
         const o = new Tone.Oscillator(420, "square");
-        const e = new Tone.AmplitudeEnvelope({ attack: 0.001, decay: 0.03, sustain: 0, release: 0.02 });
+        const e = new Tone.AmplitudeEnvelope({
+          attack: 0.001,
+          decay: 0.03,
+          sustain: 0,
+          release: 0.02,
+        });
         const g = new Tone.Gain(0.4);
         o.chain(e, g, drumBus);
         o.start();
@@ -535,11 +771,14 @@
       },
     },
     {
-      name: "ping", tag: "FMSynth", c: "fm",
+      name: "ping",
+      tag: "FMSynth",
+      c: "fm",
       desc: "short FM sine — the bright tonal blip the app uses now",
       play: () => {
         const s = new Tone.FMSynth({
-          harmonicity: 5, modulationIndex: 12,
+          harmonicity: 5,
+          modulationIndex: 12,
           envelope: { attack: 0.001, decay: 0.3, sustain: 0, release: 0.2 },
           modulationEnvelope: { attack: 0.001, decay: 0.15, sustain: 0, release: 0.1 },
         }).connect(drumBus);
@@ -553,9 +792,21 @@
   // render
   // ---------------------------------------------------------------------------
   const GROUPS = [
-    { title: "Pads", blurb: "sustained chords — oscillator choice + unison stacking + movement", items: PADS },
-    { title: "Tonal / Keys", blurb: "Tone's synth voices — plucks, bells, leads, mallets", items: KEYS },
-    { title: "Drums", blurb: "fully synthesized — note how layering & synth choice reshape each role", items: DRUMS },
+    {
+      title: "Pads",
+      blurb: "sustained chords — oscillator choice + unison stacking + movement",
+      items: PADS,
+    },
+    {
+      title: "Tonal / Keys",
+      blurb: "Tone's synth voices — plucks, bells, leads, mallets",
+      items: KEYS,
+    },
+    {
+      title: "Drums",
+      blurb: "fully synthesized — note how layering & synth choice reshape each role",
+      items: DRUMS,
+    },
   ];
 
   const board = document.getElementById("board");
@@ -576,7 +827,11 @@
         await ensure();
         b.classList.add("flash");
         setTimeout(() => b.classList.remove("flash"), 220);
-        try { it.play(); } catch (err) { console.error(it.name, err); }
+        try {
+          it.play();
+        } catch (err) {
+          console.error(it.name, err);
+        }
       });
       grid.appendChild(b);
     });
