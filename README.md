@@ -10,6 +10,10 @@ produces the same piece, and any patch is a shareable link.
 
 🔊 **Live:** [hmla.richard.solar](https://hmla.richard.solar)
 
+<p align="center">
+  <img src="docs/screenshot.png" alt="The hmla interface — a single hardware-style unit with transport, presets, a particle visualizer and an eight-fader engine rack" width="460">
+</p>
+
 ---
 
 ## What it does
