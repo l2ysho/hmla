@@ -19,10 +19,10 @@ produces the same piece, and any patch is a shareable link.
 ## What it does
 
 - **Deterministic from a seed.** A seed (`hmla-1234`) maps to a fixed
-  "instrument" — voice archetype, room/space, harmonic palette, groove and drum
-  kit — so `same seed + same settings = same patch, every time`. Independent PRNG
-  streams keep the melody, rhythm and timbre reproducible while sounding like a
-  different machine from seed to seed.
+  "instrument" — voice archetype, room/space, harmonic palette, groove, drum kit
+  and effects topology — so `same seed + same settings = same patch`, every
+  time. Independent PRNG streams keep the melody, rhythm and timbre
+  reproducible while sounding like a different machine from seed to seed.
 - **Eight live faders.** `density · bright · space · chaos · grain · sub · pulse ·
 lofi` (0–100) reshape the patch in real time without rebuilding the audio
   graph, plus a **shimmer** toggle (octave-up reverb halo). With **pulse** at
@@ -45,11 +45,13 @@ flowchart TD
     ident --> arch["instrument archetype<br/>oscillators · envelopes · filter"]
     ident --> space["room / space<br/>reverb · delay · lo-fi"]
     ident --> pal["harmonic palette<br/>scales the patch wanders"]
-    ident --> kit["groove + drum kit<br/>tempo · swing · Euclidean tracks"]
+    ident --> kit["groove + drum kit<br/>tempo · swing · polymetric Euclidean tracks"]
+    ident --> fx["effects topology<br/>wet-chain order · color module"]
     arch --> engine["buildEngine()<br/>audio graph + sequencer"]
     space --> engine
     pal --> engine
     kit --> engine
+    fx --> engine
     faders["8 faders + shimmer"] -. read live every tick .-> engine
     engine --> audio["audio output"]
     engine --> events["event stream"]

@@ -11,6 +11,7 @@ export const HIT_COLORS: Record<string, string> = {
   pluck: "var(--hit-pluck)",
   shaker: "var(--hit-shaker)",
   ping: "var(--hit-ping)",
+  rim: "var(--hit-rim)",
 };
 
 export const DETUNES = [-1200, -500, 0, 0, 0, 700, 1200];

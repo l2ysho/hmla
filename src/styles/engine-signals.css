@@ -18,6 +18,7 @@
   --hit-pluck: #c4b5fd;
   --hit-shaker: #7ad0e0;
   --hit-ping: #ffce7a;
+  --hit-rim: #f0879a;
   --hit-fallback: #a78bfa;
 
   /* channel accents not covered by the DS LED palette */
@@ -41,6 +42,7 @@
   --hit-pluck: #7c5fd6;
   --hit-shaker: #2f8fb5;
   --hit-ping: #b8801a;
+  --hit-rim: #c2455e;
   --hit-fallback: #6d4fd0;
 
   --ch-sub: #4a50c5;

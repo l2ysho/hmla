@@ -1,5 +1,6 @@
 import * as Tone from "tone";
 import { DETUNES, SCALES } from "./constants";
+import { buildDrums, type Hit } from "./drums";
 import { deriveIdentity, type TrackCfg } from "./identity";
 import { makeRng, euclid } from "./prng";
 import { audioBufferToWav } from "./wav";
@@ -35,6 +36,7 @@ export async function buildEngine(
     scaleIdx: initialScaleIdx,
     groove,
     kit,
+    fx,
     padTone,
   } = deriveIdentity(seed);
 
@@ -69,18 +71,70 @@ export async function buildEngine(
   master.connect(limiter);
   const reverb = new Tone.Reverb({ decay: space.decay, preDelay: space.preDelay, wet: 0.5 });
   await reverb.generate();
-  reverb.connect(master);
   const delay = new Tone.PingPongDelay({ delayTime: space.delayTime, feedback: 0.45, wet: 0.25 });
-  delay.connect(reverb);
   const crusher = new Tone.BitCrusher(8);
   crusher.wet.value = 0.08;
-  crusher.connect(delay);
   const filter = new Tone.Filter(1200, flt.type);
   filter.Q.value = fQ;
   filter.rolloff = flt.rolloff;
-  filter.connect(crusher);
   const bus = new Tone.Gain(0);
   bus.connect(filter);
+
+  // Per-seed wet-chain topology (identity.fx.chain): the same three modules
+  // in a different order sound like a different machine — "tape" crushes the
+  // echoes, "dub" echoes the reverb wash. The crusher always sits before the
+  // reverb in every order (the shimmer tap below relies on that).
+  type Wet3 = [Tone.ToneAudioNode, Tone.ToneAudioNode, Tone.ToneAudioNode];
+  const wetChain: Wet3 = (
+    {
+      grit: [crusher, delay, reverb],
+      tape: [delay, crusher, reverb],
+      dub: [crusher, reverb, delay],
+    } satisfies Record<typeof fx.chain, Wet3>
+  )[fx.chain];
+  wetChain[0].connect(wetChain[1]);
+  wetChain[1].connect(wetChain[2]);
+  wetChain[2].connect(master);
+
+  // Optional per-seed color module (identity.fx.color) on the drone path only
+  // — inserted after the filter so the rhythm bus stays untouched and punchy.
+  let colorFx: Tone.ToneAudioNode | null = null;
+  {
+    const d = fx.colorDepth;
+    if (fx.color === "chorus")
+      colorFx = new Tone.Chorus({
+        frequency: 0.2 + d * 0.4,
+        delayTime: 4,
+        depth: 0.4 + d * 0.4,
+        wet: 0.5,
+      }).start();
+    else if (fx.color === "phaser")
+      colorFx = new Tone.Phaser({
+        frequency: 0.06 + d * 0.18,
+        octaves: 2.5,
+        baseFrequency: 320,
+        wet: 0.4,
+      });
+    else if (fx.color === "vibrato")
+      colorFx = new Tone.Vibrato({ frequency: 0.8 + d * 2.2, depth: 0.05 + d * 0.07, wet: 0.6 });
+    else if (fx.color === "tremolo")
+      colorFx = new Tone.Tremolo({
+        frequency: 0.7 + d * 2.5,
+        depth: 0.35 + d * 0.3,
+        wet: 0.5,
+      }).start();
+    else if (fx.color === "shift") {
+      const s = new Tone.FrequencyShifter(0.5 + d * 3);
+      s.wet.value = 0.22;
+      colorFx = s;
+    }
+  }
+  if (colorFx) {
+    filter.connect(colorFx);
+    colorFx.connect(wetChain[0]);
+  } else {
+    filter.connect(wetChain[0]);
+  }
 
   const filtLfo = new Tone.LFO({ frequency: 1 / 47, min: 600, max: 2000, type: "sine" }).start();
   filtLfo.connect(filter.frequency);
@@ -92,7 +146,9 @@ export async function buildEngine(
       if (on && !shimmer) {
         const ps = new Tone.PitchShift({ pitch: 12, windowSize: 0.25 });
         const g = new Tone.Gain(0);
-        delay.connect(ps);
+        // tap the crusher (always upstream of the reverb in every wet-chain
+        // order) — tapping the delay would loop back on itself in "dub" order
+        crusher.connect(ps);
         ps.chain(g, reverb);
         shimmer = { ps, g };
       }
@@ -328,187 +384,61 @@ export async function buildEngine(
   /* delay synced to tempo: dotted eighth */
   delay.delayTime.value = (60 / bpm) * 0.75;
 
-  /* rhythm bypasses the drone lowpass filter: goes straight into the crusher
-     (still gets lo-fi, delay and reverb), plus its own dry path direct to the
-     limiter — punch that the reverb won't drown */
+  /* rhythm bypasses the drone lowpass filter (and the color module): goes
+     straight into the head of the wet chain (still gets lo-fi, delay and
+     reverb), plus its own dry path direct to the limiter — punch that the
+     reverb won't drown */
   const rhythmBus = new Tone.Gain(0);
-  rhythmBus.connect(crusher);
+  rhythmBus.connect(wetChain[0]);
   const rhythmDry = new Tone.Gain(0);
   rhythmBus.connect(rhythmDry);
   rhythmDry.connect(master);
 
-  const gk = groove.kit;
-
-  // Each drum role is built from a per-seed *method* (identity.kit) instead of
-  // one fixed synth, so the same groove can sound like a different machine from
-  // seed to seed. The groove's `gk` numbers still set the base character; the
-  // method chooses how that character is synthesised (and adds snare/metal).
+  // Each drum role is built from a per-seed *recipe* (drums.ts, keyed by
+  // identity.kit) instead of one fixed synth, so the same groove can sound
+  // like a different machine from seed to seed. The groove's kit numbers still
+  // set the base character; the recipe chooses how it's synthesised.
   // Voices are closures over their nodes; `keep` collects nodes for disposal.
   const drumNodes: Tone.ToneAudioNode[] = [];
   const keep = (...n: Tone.ToneAudioNode[]): void => void drumNodes.push(...n);
+  const drums = buildDrums({ gk: groove.kit, kit, keep, subNote: () => scale().sub[0] }, rhythmBus);
 
-  /* kick — membrane, pitch-swept sine body (808), or body + noise click */
-  const kick = (() => {
-    const out = new Tone.Gain(kit.kick === "membrane" ? 1.5 : 1.15);
-    out.connect(rhythmBus);
-    if (kit.kick === "membrane") {
-      const m = new Tone.MembraneSynth({
-        pitchDecay: 0.11,
-        octaves: gk.boomOct,
-        envelope: { attack: 0.001, decay: gk.boomDecay, sustain: 0, release: 0.9 },
-      });
-      const f = new Tone.Filter(320, "lowpass");
-      f.Q.value = 1.1;
-      m.chain(f, out);
-      keep(m, f, out);
-      return (time: number, vel: number) => m.triggerAttackRelease(scale().sub[0], 0.4, time, vel);
-    }
-    const startHz = 120 + kit.kickTune * 45;
-    const endHz = 42 + kit.kickTune * 12;
-    const decay = gk.boomDecay * 0.7;
-    const body = new Tone.Oscillator(startHz, "sine");
-    const env = new Tone.AmplitudeEnvelope({ attack: 0.001, decay, sustain: 0, release: 0.06 });
-    const drive = new Tone.Distortion(0.12);
-    drive.wet.value = 0.5;
-    body.chain(env, drive, out);
-    body.start();
-    keep(body, env, drive, out);
-    let click: Tone.NoiseSynth | null = null;
-    if (kit.kick === "layered") {
-      click = new Tone.NoiseSynth({
-        noise: { type: "white" },
-        envelope: { attack: 0.001, decay: 0.012, sustain: 0 },
-      });
-      const hp = new Tone.Filter(1400, "highpass");
-      const cg = new Tone.Gain(0.5);
-      click.chain(hp, cg, out);
-      keep(click, hp, cg);
-    }
-    return (time: number, vel: number) => {
-      body.frequency.setValueAtTime(startHz, time);
-      body.frequency.exponentialRampToValueAtTime(endHz, time + 0.08);
-      env.triggerAttackRelease(decay, time, vel);
-      click?.triggerAttackRelease(0.02, time, vel);
-    };
-  })();
-
-  /* hat (shaker role) — filtered-noise tick, or metallic MetalSynth */
-  const hat = (() => {
-    const out = new Tone.Gain(0.3);
-    out.connect(rhythmBus);
-    if (kit.hat === "metal") {
-      const m = new Tone.MetalSynth({
-        harmonicity: 5.1,
-        modulationIndex: 32,
-        resonance: 3000 + kit.hatTune * 3000,
-        octaves: 1.5,
-        envelope: { attack: 0.001, decay: gk.shakerDecay + 0.02, release: 0.02 },
-      });
-      const hp = new Tone.Filter(gk.shakerHz * 0.7, "highpass");
-      m.chain(hp, out);
-      keep(m, hp, out);
-      return (time: number, vel: number) =>
-        m.triggerAttackRelease("C5", gk.shakerDecay + 0.02, time, vel);
-    }
-    const n = new Tone.NoiseSynth({
-      noise: { type: "pink" },
-      envelope: { attack: 0.002, decay: gk.shakerDecay, sustain: 0 },
-    });
-    const f = new Tone.Filter(gk.shakerHz, "highpass");
-    n.chain(f, out);
-    keep(n, f, out);
-    return (time: number, vel: number) => n.triggerAttackRelease(0.06, time, vel);
-  })();
-
-  /* pluck role — tonal Karplus pluck, or a layered tone+noise snare */
-  const pluckVoice = (() => {
-    const out = new Tone.Gain(0.75);
-    out.connect(rhythmBus);
-    if (kit.pluckVoice === "snare") {
-      const o = new Tone.Oscillator(180, "triangle");
-      const oe = new Tone.AmplitudeEnvelope({
-        attack: 0.001,
-        decay: 0.12,
-        sustain: 0,
-        release: 0.04,
-      });
-      o.chain(oe, out);
-      o.start();
-      const n = new Tone.NoiseSynth({
-        noise: { type: "white" },
-        envelope: { attack: 0.001, decay: 0.2, sustain: 0 },
-      });
-      const bp = new Tone.Filter(2400, "bandpass");
-      bp.Q.value = 0.8;
-      const ng = new Tone.Gain(0.8);
-      n.chain(bp, ng, out);
-      keep(o, oe, n, bp, ng, out);
-      return (_note: string, time: number, vel: number) => {
-        oe.triggerAttackRelease(0.12, time, vel * 0.7);
-        n.triggerAttackRelease(0.2, time, vel);
-      };
-    }
-    const pl = new Tone.PluckSynth({
-      attackNoise: 0.8,
-      dampening: gk.pluckDamp,
-      resonance: gk.pluckRes,
-    });
-    pl.connect(out);
-    keep(pl, out);
-    return (note: string, time: number, _vel: number) => pl.triggerAttack(note, time);
-  })();
-
-  /* ping — bright tonal blip: FM (default) or AM */
-  const ping = (() => {
-    const out = new Tone.Gain(0.2);
-    out.connect(rhythmBus);
-    if (kit.ping === "am") {
-      const s = new Tone.AMSynth({
-        harmonicity: gk.pingHarm * 0.5,
-        envelope: { attack: 0.001, decay: 0.3, sustain: 0, release: 0.2 },
-      });
-      s.connect(out);
-      keep(s, out);
-      return (note: string, dur: number, time: number, vel: number) =>
-        s.triggerAttackRelease(note, dur, time, vel);
-    }
-    const s = new Tone.FMSynth({
-      harmonicity: gk.pingHarm,
-      modulationIndex: gk.pingMod,
-      oscillator: { type: "sine" },
-      envelope: { attack: 0.001, decay: 0.3, sustain: 0, release: 0.2 },
-      modulation: { type: "sine" },
-      modulationEnvelope: { attack: 0.001, decay: 0.15, sustain: 0, release: 0.1 },
-    });
-    s.connect(out);
-    keep(s, out);
-    return (note: string, dur: number, time: number, vel: number) =>
-      s.triggerAttackRelease(note, dur, time, vel);
-  })();
-
-  /* Euclidean patterns: threshold = pulse value at which the track starts playing */
+  /* Euclidean patterns: threshold = pulse value at which the track starts playing.
+     Polymeter: boom anchors the base grid, but every other track may run a
+     cycle a quarter shorter or longer (independent `<seed>-poly` stream), so
+     the patterns phase against each other over several bars instead of
+     realigning every bar. */
+  const prnd = makeRng(`${seed}-poly`);
+  const quarter = Math.max(2, Math.round(steps / 4));
+  const polyLen = (anchor: boolean) => {
+    if (anchor || prnd() < 0.5) return steps;
+    return prnd() < 0.5 ? steps - quarter : steps + quarter;
+  };
   interface Track {
     hits: number;
     rot: number;
     thresh: number;
     active: boolean;
+    len: number;
     pat: boolean[];
   }
   const pickHits = (c: TrackCfg) => c.hits[0] + ((rrnd() * (c.hits[1] - c.hits[0] + 1)) | 0);
-  const mkTrack = (c: TrackCfg): Track => ({
+  const mkTrack = (c: TrackCfg, anchor = false): Track => ({
     hits: pickHits(c),
     rot: (rrnd() * steps) | 0,
     thresh: c.thresh,
     active: c.active,
+    len: polyLen(anchor),
     pat: [],
   });
-  const tracks: Record<"boom" | "pluck" | "shaker" | "ping", Track> = {
-    boom: mkTrack(groove.boom),
+  const tracks: Record<"boom" | "pluck" | "shaker" | "ping" | "rim", Track> = {
+    boom: mkTrack(groove.boom, true),
     pluck: mkTrack(groove.pluck),
     shaker: mkTrack(groove.shaker),
     ping: mkTrack(groove.ping),
+    rim: mkTrack(groove.rim),
   };
-  for (const t of Object.values(tracks)) t.pat = euclid(t.hits, steps, t.rot);
+  for (const t of Object.values(tracks)) t.pat = euclid(t.hits, t.len, t.rot);
 
   /* pluck tonal material — from the current scale, upper half */
   let pluckPool: string[] = [];
@@ -519,12 +449,12 @@ export async function buildEngine(
   }
   refreshPluckPool();
 
-  let step = 0;
+  let step = 0; // global step counter — bar position is step % steps
   const gate = (track: keyof typeof tracks, p: Params): boolean | "ghost" => {
     const t = tracks[track];
     if (!t.active) return false;
     if (p.pulse < t.thresh) return false;
-    let hit: boolean | "ghost" = t.pat[step];
+    let hit: boolean | "ghost" = t.pat[step % t.len];
     if (hit && rrnd() < p.chaos * 0.25) hit = false; // skip
     if (!hit && rrnd() < p.chaos * 0.08 * p.pulse) hit = "ghost"; // ghost note
     if (!hit) return false;
@@ -534,27 +464,54 @@ export async function buildEngine(
   };
   const jit = () => (rrnd() - 0.5) * 0.014;
 
+  /* metric accent — downbeat > beats > eighths > offbeats, so the groove has
+     a pocket instead of flat random velocity. Full hits are scaled by it;
+     ghost notes stay quiet as-is. */
+  const accent = (s: number) =>
+    s === 0 ? 1 : s % quarter === 0 ? 0.85 : s % 2 === 0 ? 0.68 : 0.55;
+
+  /* fill: one rising bar played right before a pending pattern mutation, so
+     the change lands as a phrase instead of a silent swap. Uses the most
+     textural active voice. */
+  let fillArm = false;
+  let fillLeft = 0;
+  let pendingMut: (() => void) | null = null;
+  const [fillHit, fillTrack]: [Hit, "rim" | "shaker" | "pluck"] = groove.rim.active
+    ? [drums.rim, "rim"]
+    : groove.shaker.active
+      ? [drums.hat, "shaker"]
+      : [(time, vel) => drums.pluck(pluckPool[0] || "A4", time, vel), "pluck"];
+
   let loopId: number | null = null;
   try {
     loopId = Tone.Transport.scheduleRepeat((time) => {
       const p = getParams();
+      const barPos = step % steps;
       if (p.pulse <= 0.03) {
-        step = (step + 1) % steps;
+        // pulse is down — apply any pending mutation silently, skip the fill
+        if (pendingMut) {
+          pendingMut();
+          pendingMut = null;
+        }
+        fillArm = false;
+        fillLeft = 0;
+        step++;
         return;
       }
+      const am = 0.55 + 0.45 * accent(barPos);
       let h: boolean | "ghost";
       try {
         if ((h = gate("boom", p))) {
-          kick(time + jit(), h === "ghost" ? 0.25 : 0.6 + rrnd() * 0.35);
+          drums.kick(time + jit(), h === "ghost" ? 0.25 : (0.6 + rrnd() * 0.35) * am);
           emit({ type: "hit", track: "boom" });
         }
         if ((h = gate("pluck", p))) {
           const note = pluckPool[(rrnd() * pluckPool.length) | 0];
-          pluckVoice(note, time + jit(), h === "ghost" ? 0.3 : 0.6 + rrnd() * 0.3);
+          drums.pluck(note, time + jit(), h === "ghost" ? 0.3 : (0.6 + rrnd() * 0.3) * am);
           emit({ type: "hit", track: "pluck" });
         }
         if ((h = gate("shaker", p))) {
-          hat(time + jit(), h === "ghost" ? 0.2 : 0.4 + rrnd() * 0.4);
+          drums.hat(time + jit(), h === "ghost" ? 0.2 : (0.4 + rrnd() * 0.4) * am);
           emit({ type: "hit", track: "shaker" });
         }
         if ((h = gate("ping", p))) {
@@ -565,37 +522,67 @@ export async function buildEngine(
           } catch {
             // keep fallback note
           }
-          ping(note, 0.25, time + jit(), h === "ghost" ? 0.2 : 0.45 + rrnd() * 0.3);
+          drums.ping(note, 0.25, time + jit(), h === "ghost" ? 0.2 : (0.45 + rrnd() * 0.3) * am);
           emit({ type: "hit", track: "ping" });
+        }
+        if ((h = gate("rim", p))) {
+          drums.rim(time + jit(), h === "ghost" ? 0.2 : (0.45 + rrnd() * 0.35) * am);
+          emit({ type: "hit", track: "rim" });
+        }
+        if (fillArm && barPos === 0) {
+          fillArm = false;
+          fillLeft = steps;
+        }
+        if (fillLeft > 0) {
+          const prog = 1 - fillLeft / steps;
+          if (barPos % 2 === 0 && rrnd() < 0.15 + 0.6 * prog) {
+            fillHit(time + jit(), 0.25 + 0.55 * prog);
+            emit({ type: "hit", track: fillTrack });
+          }
+          fillLeft--;
+          if (fillLeft === 0 && pendingMut) {
+            pendingMut();
+            pendingMut = null;
+          }
         }
       } catch {
         // ignore — a bad trigger shouldn't stop the transport
       }
-      step = (step + 1) % steps;
+      step++;
     }, groove.sub);
     Tone.Transport.start("+0.1");
   } catch {
     // ignore
   }
 
-  /* pattern mutations — rhythm evolves lazily */
+  /* pattern mutations — rhythm evolves lazily. When the pulse is up, the
+     mutation is deferred behind a one-bar fill (armed at the next bar turn);
+     when it's quiet, it just swaps in place like before. */
   every(() => {
     if (rrnd() < 0.6) {
       const keys = (Object.keys(tracks) as (keyof typeof tracks)[]).filter((k) => tracks[k].active);
       if (!keys.length) return;
       const k = keys[(rrnd() * keys.length) | 0];
       const t = tracks[k];
-      if (rrnd() < 0.5) {
-        t.rot = (t.rot + 1 + ((rrnd() * 3) | 0)) % steps;
+      const mutate = () => {
+        if (rrnd() < 0.5) {
+          t.rot = (t.rot + 1 + ((rrnd() * 3) | 0)) % t.len;
+        } else {
+          // stay within the groove's character: hits drift inside its configured range
+          const cfg = groove[k];
+          const max = Math.min(t.len, cfg.hits[1] + 1);
+          t.hits = Math.max(cfg.hits[0], Math.min(max, t.hits + (rrnd() < 0.5 ? -1 : 1)));
+        }
+        t.pat = euclid(t.hits, t.len, t.rot);
+        if (k === "pluck") refreshPluckPool();
+        emit({ type: "pattern" });
+      };
+      if (getParams().pulse > 0.4 && !pendingMut) {
+        pendingMut = mutate;
+        fillArm = true;
       } else {
-        // stay within the groove's character: hits drift inside its configured range
-        const cfg = groove[k];
-        const max = Math.min(steps, cfg.hits[1] + 1);
-        t.hits = Math.max(cfg.hits[0], Math.min(max, t.hits + (rrnd() < 0.5 ? -1 : 1)));
+        mutate();
       }
-      t.pat = euclid(t.hits, steps, t.rot);
-      if (k === "pluck") refreshPluckPool();
-      emit({ type: "pattern" });
     }
   }, 52000);
 
@@ -674,6 +661,7 @@ export async function buildEngine(
           grainBus,
           rhythmBus,
           rhythmDry,
+          ...(colorFx ? [colorFx] : []),
           ...drumNodes,
         ].forEach((n) => n.dispose());
         voices.forEach((v) => {
