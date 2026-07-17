@@ -14,7 +14,7 @@ export type EngineEvent =
   | { type: "note"; voice: number; note: string }
   | { type: "grain" }
   | { type: "capture" }
-  | { type: "hit"; track: "boom" | "pluck" | "shaker" | "ping" }
+  | { type: "hit"; track: "boom" | "pluck" | "shaker" | "ping" | "rim" }
   | { type: "key"; name: string }
   | { type: "bpm"; value: number }
   | { type: "character"; instrument: string; space: string; groove: string }

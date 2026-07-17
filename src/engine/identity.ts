@@ -130,12 +130,13 @@ export interface Groove {
   name: string;
   bpm: [number, number];
   sub: "16n" | "8n" | "8t"; // grid: straight 16ths / spacious 8ths / triplet lilt
-  steps: number; // pattern length (>= every track's max hits)
+  steps: number; // base pattern length (>= every track's max hits)
   swing: [number, number];
   boom: TrackCfg;
   pluck: TrackCfg;
   shaker: TrackCfg;
   ping: TrackCfg;
+  rim: TrackCfg;
   kit: {
     boomDecay: number;
     boomOct: number;
@@ -159,6 +160,7 @@ export const GROOVES: Groove[] = [
     pluck: { active: true, hits: [2, 4], thresh: 0.4 },
     shaker: { active: false, hits: [4, 6], thresh: 0.55 },
     ping: { active: true, hits: [1, 2], thresh: 0.6 },
+    rim: { active: true, hits: [1, 3], thresh: 0.5 },
     kit: {
       boomDecay: 0.9,
       boomOct: 2.6,
@@ -180,6 +182,7 @@ export const GROOVES: Groove[] = [
     pluck: { active: true, hits: [4, 6], thresh: 0.25 },
     shaker: { active: true, hits: [6, 8], thresh: 0.5 },
     ping: { active: true, hits: [1, 2], thresh: 0.7 },
+    rim: { active: true, hits: [2, 4], thresh: 0.45 },
     kit: {
       boomDecay: 0.6,
       boomOct: 2.2,
@@ -201,6 +204,7 @@ export const GROOVES: Groove[] = [
     pluck: { active: false, hits: [2, 4], thresh: 0.4 },
     shaker: { active: false, hits: [4, 6], thresh: 0.55 },
     ping: { active: true, hits: [1, 2], thresh: 0.55 },
+    rim: { active: false, hits: [1, 2], thresh: 0.6 },
     kit: {
       boomDecay: 0.7,
       boomOct: 2.3,
@@ -222,6 +226,7 @@ export const GROOVES: Groove[] = [
     pluck: { active: true, hits: [3, 5], thresh: 0.3 },
     shaker: { active: true, hits: [8, 12], thresh: 0.45 },
     ping: { active: true, hits: [1, 2], thresh: 0.75 },
+    rim: { active: true, hits: [2, 4], thresh: 0.55 },
     kit: {
       boomDecay: 0.5,
       boomOct: 2.1,
@@ -243,6 +248,7 @@ export const GROOVES: Groove[] = [
     pluck: { active: true, hits: [2, 3], thresh: 0.45 },
     shaker: { active: false, hits: [3, 5], thresh: 0.55 },
     ping: { active: true, hits: [1, 2], thresh: 0.6 },
+    rim: { active: true, hits: [1, 2], thresh: 0.65 },
     kit: {
       boomDecay: 1.0,
       boomOct: 2.6,
@@ -256,17 +262,35 @@ export const GROOVES: Groove[] = [
   },
 ];
 
-/** Per-seed drum-kit *synthesis* selection — which method builds each voice.
- * Drawn from an independent `<seed>-kit` stream so it adds timbre variety
- * without disturbing the melody/rhythm/identity draws (existing seeds keep
- * their notes, key, room, groove and patterns — only the drum sound widens). */
+/** Per-seed drum-kit *synthesis* selection — which method (see drums.ts)
+ * builds each voice. Drawn from an independent `<seed>-kit` stream so it adds
+ * timbre variety without disturbing the melody/rhythm/identity draws — a seed
+ * keeps its notes, key, room, groove and patterns no matter how these pools
+ * grow (though growing a pool can remap which method an existing seed lands on). */
 export interface KitChoice {
-  kick: "membrane" | "synth" | "layered";
-  hat: "noise" | "metal";
-  pluckVoice: "pluck" | "snare";
-  ping: "fm" | "am";
-  kickTune: number; // 0..1 — nudges body tuning of synth/layered kicks
-  hatTune: number; // 0..1 — nudges metal-hat resonance
+  kick: "membrane" | "synth" | "layered" | "knock";
+  hat: "noise" | "metal" | "dust";
+  pluckVoice: "pluck" | "snare" | "bell";
+  ping: "fm" | "am" | "blip";
+  rim: "rim" | "wood" | "click";
+  kickTune: number; // 0..1 — nudges body tuning of synth/layered/knock kicks
+  hatTune: number; // 0..1 — nudges metal/dust-hat resonance
+  rimTune: number; // 0..1 — nudges the rim/wood/click pitch
+}
+
+/** Per-seed effects *structure* — drawn from an independent `<seed>-fx`
+ * stream. `chain` reorders the shared wet chain (where the bit-crusher, delay
+ * and reverb sit relative to each other), and `color` optionally inserts a
+ * modulation effect on the drone path — so seeds diverge in topology, not
+ * just in knob values. */
+export interface FxChoice {
+  /** wet-chain order:
+   *  grit — crush → delay → verb (the classic hmla chain)
+   *  tape — delay → crush → verb (echoes get crushed: gritty, degraded tails)
+   *  dub  — crush → verb → delay (the reverb wash itself echoes: dubby smear) */
+  chain: "grit" | "tape" | "dub";
+  color: "none" | "chorus" | "phaser" | "vibrato" | "tremolo" | "shift";
+  colorDepth: number; // 0..1 — how far the color module is pushed
 }
 
 export interface SeedIdentity {
@@ -279,6 +303,7 @@ export interface SeedIdentity {
   scaleIdx: number;
   groove: Groove;
   kit: KitChoice;
+  fx: FxChoice;
   padTone: number; // 0..1 — per-seed nudge to pad cutoff/wet within its archetype
 }
 
@@ -319,16 +344,29 @@ export function deriveIdentity(seed: string): SeedIdentity {
   const krnd = makeRng(`${seed}-kit`);
   const kPick = <T>(arr: readonly T[]): T => arr[(krnd() * arr.length) | 0];
   const kit: KitChoice = {
-    kick: kPick(["membrane", "synth", "layered"] as const),
-    hat: kPick(["noise", "metal"] as const),
-    pluckVoice: kPick(["pluck", "snare"] as const),
-    ping: kPick(["fm", "am"] as const),
+    kick: kPick(["membrane", "synth", "layered", "knock"] as const),
+    hat: kPick(["noise", "metal", "dust"] as const),
+    pluckVoice: kPick(["pluck", "snare", "bell"] as const),
+    ping: kPick(["fm", "am", "blip"] as const),
     kickTune: krnd(),
     hatTune: krnd(),
+    rim: kPick(["rim", "wood", "click"] as const),
+    rimTune: krnd(),
   };
+
+  // Effects structure has its own stream too; "grit" and "none" are weighted
+  // so plenty of seeds keep the plain chain and the variants read as special.
+  const frnd = makeRng(`${seed}-fx`);
+  const fPick = <T>(arr: readonly T[]): T => arr[(frnd() * arr.length) | 0];
+  const fx: FxChoice = {
+    chain: fPick(["grit", "grit", "tape", "dub"] as const),
+    color: fPick(["none", "none", "chorus", "phaser", "vibrato", "tremolo", "shift"] as const),
+    colorDepth: frnd(),
+  };
+
   const padTone = makeRng(`${seed}-pad`)();
 
-  return { arch, flt, space, fQ, octaveMul, palette, scaleIdx, groove, kit, padTone };
+  return { arch, flt, space, fQ, octaveMul, palette, scaleIdx, groove, kit, fx, padTone };
 }
 
 export interface SeedPreview {
