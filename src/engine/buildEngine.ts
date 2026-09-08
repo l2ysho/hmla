@@ -2,7 +2,7 @@ import * as Tone from "tone";
 import { DETUNES, SCALES } from "./constants";
 import { buildDrums, type Hit } from "./drums";
 import { deriveIdentity, type TrackCfg } from "./identity";
-import { parseTrack, renderGrid, trackSrc } from "./patterns";
+import { parseTrack, renderEvents, renderGrid, trackSrc } from "./patterns";
 import { makeRng } from "./prng";
 import { audioBufferToWav } from "./wav";
 import type { Pattern } from "@strudel/core";
@@ -187,6 +187,67 @@ export async function buildEngine(
     };
   });
 
+  /* --- harmonic pad ----------------------------------------------------
+     The three drone voices each wander the scale independently, so nothing
+     ever states a chord — the result is a drifting cluster rather than
+     harmony, and the piece has nowhere to go. This pad gives it somewhere:
+     a slow progression of scale degrees, one chord per cycle, as a Strudel
+     pattern.
+
+     Chords are stacked scale thirds rather than named qualities, so whatever
+     mode the seed drew — pentatonic, dorian, hirajoshi — the pad can only
+     play notes the drones already have. It is voiced an octave above the
+     scale floor and kept quiet on purpose: voiced at the floor it lands
+     around 73-175Hz and simply thickens the bass the drones already occupy,
+     which measured as mud (bass 80-250Hz went from 60% to 90% of the mix)
+     rather than as harmony. */
+  const PAD_PROGRESSIONS = ["<0 3 4 2>", "<0 5 3 4>", "<0 2 5 3>", "<0 4 2 5>", "<0 3 5 4>"];
+  // `<seed>-pad` is already consumed by identity.padTone, and the engine keeps
+  // one PRNG stream per concern, so the progression draws its own.
+  const padRnd = makeRng(`${seed}-chords`);
+  const padProg = parseTrack(PAD_PROGRESSIONS[(padRnd() * PAD_PROGRESSIONS.length) | 0]);
+  const padOut = new Tone.Gain(0.07);
+  // narrow: a wide chorus here measured a stereo correlation of -0.117, near
+  // phase inversion, which sounds hollow and cancels in mono
+  const padChorus = new Tone.Chorus({
+    frequency: 0.1,
+    delayTime: 2.5,
+    depth: 0.25,
+    wet: 0.25,
+  }).start();
+  padOut.chain(padChorus, bus);
+  const pad = new Tone.PolySynth(Tone.Synth, {
+    oscillator: { type: "triangle" },
+    // long swells so each chord blooms and recedes under the drones
+    envelope: { attack: 3.5, decay: 2.5, sustain: 0.5, release: 6 },
+  });
+  pad.maxPolyphony = 12;
+  pad.connect(padOut);
+
+  /** The chord on `degree`, as stacked thirds one octave above the scale floor. */
+  const padChord = (degree: number): string[] => {
+    const notes = scale().notes;
+    const perOctave = Math.max(1, Math.floor(notes.length / 3));
+    const root = (degree % perOctave) + perOctave;
+    return [0, 2, 4].map((step) => notes[root + step]).filter((n): n is string => !!n);
+  };
+
+  let padCycle = 0;
+  /** Chord length — slow enough to stay ambient, short enough that the piece
+   *  audibly moves. The drones' own notes run 6-14s, so this sits with them. */
+  const PAD_MS = 11000;
+  function movePad() {
+    const ev = renderEvents<number>(padProg, padCycle++)[0];
+    if (!ev) return;
+    const notes = padChord(ev.value);
+    if (!notes.length) return;
+    try {
+      pad.triggerAttackRelease(notes, 11, undefined, 0.45);
+    } catch {
+      // a bad voicing shouldn't stop the piece
+    }
+  }
+
   /* --- sub bass --- */
   // The raw scale sub notes (octave 1) are inaudibly low on most speakers, so
   // the sub oscillator runs one octave above them.
@@ -350,6 +411,8 @@ export async function buildEngine(
     later(() => scheduleVoice(i), gap * 1000);
   }
   voices.forEach((_, i) => later(() => scheduleVoice(i), 400 + i * 2600));
+  later(movePad, 800);
+  every(movePad, PAD_MS);
 
   /* --- key changes --- */
   every(
@@ -701,6 +764,9 @@ export async function buildEngine(
           grainBus,
           rhythmBus,
           rhythmDry,
+          pad,
+          padOut,
+          padChorus,
           ...(colorFx ? [colorFx] : []),
           ...drumNodes,
         ].forEach((n) => n.dispose());
