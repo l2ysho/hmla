@@ -57,3 +57,32 @@ export function renderGrid(
   }
   return grid;
 }
+
+/** One event from a pattern query, positioned within its cycle. */
+export interface PatternEvent<T = unknown> {
+  /** onset as a fraction of the cycle, 0–1 */
+  at: number;
+  /** length as a fraction of the cycle */
+  dur: number;
+  value: T;
+}
+
+/**
+ * Query one cycle and return its events with their values intact.
+ *
+ * `renderGrid` above quantises to a step grid and throws the values away,
+ * which is all the ambient engine needs. The lo-fi engine schedules straight
+ * from these fractional positions instead, so swing, triplets and `ply` rolls
+ * survive rather than being rounded onto a grid, and it reads the values as
+ * chord names, drum tokens or chord-tone indices.
+ */
+export function renderEvents<T = unknown>(pat: Pattern, cycle: number): PatternEvent<T>[] {
+  const out: PatternEvent<T>[] = [];
+  for (const hap of pat.queryArc(cycle, cycle + 1)) {
+    if (!hap.whole) continue; // fragment clipped by the query window
+    const at = Number(hap.whole.begin) - cycle;
+    if (at < 0 || at >= 1) continue;
+    out.push({ at, dur: Number(hap.whole.end) - Number(hap.whole.begin), value: hap.value as T });
+  }
+  return out.toSorted((a, b) => a.at - b.at);
+}

@@ -36,6 +36,16 @@ declare module "@strudel/core" {
      * seeds the degrade, whereas `p.seed(n).degradeBy(x)` does not.
      */
     seed(n: number): Pattern;
+    /** Repeat each event `n` times within its own timespan — hat rolls. */
+    ply(n: number): Pattern;
+    /** Apply `fn` to a random `prob` (0–1) share of events. */
+    sometimesBy(prob: number, fn: (pat: Pattern) => Pattern): Pattern;
+    /** Layer a copy of the pattern shifted later by `offset` cycles. */
+    off(offset: number, fn: (pat: Pattern) => Pattern): Pattern;
+    /** Delay every other `1/subdivision` step by `amount` of that step. */
+    swingBy(amount: number, subdivision: number): Pattern;
+    /** Shift the whole pattern later by `n` cycles. */
+    late(n: number): Pattern;
   }
 }
 

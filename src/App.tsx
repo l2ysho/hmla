@@ -14,13 +14,14 @@ import { Tag } from "./components/ds/Tag";
 import { Transport } from "./components/ds/Transport";
 import { SignalMark } from "./components/SignalMark";
 import { buildEngine } from "./engine/buildEngine";
+import { buildLofiEngine, previewLofi } from "./engine/lofi";
 import { previewSeed } from "./engine/identity";
 import { PRESETS, VOICE_COLORS } from "./engine/constants";
 import { makeRng } from "./engine/prng";
 import { canonSeed, makeSeed, randomSeed, seedDigits } from "./engine/seed";
 import { decodeEngine, encodeEngine } from "./engine/share";
 import { useVisual } from "./engine/useVisual";
-import type { EngineEvent, EngineHandle, Params } from "./types";
+import type { EngineEvent, EngineHandle, Mode, Params } from "./types";
 
 const DEFAULT_PARAMS: Params = {
   density: 0.5,
@@ -50,6 +51,7 @@ const STORAGE_KEY = "hmla.patch.v1";
 interface StoredPatch {
   params: Params;
   seed: string;
+  mode: Mode;
   theme: "dark" | "light";
 }
 
@@ -80,6 +82,7 @@ function readStored(): StoredPatch {
   const fallback: StoredPatch = {
     params: DEFAULT_PARAMS,
     seed: randomSeed(),
+    mode: "ambient",
     theme: "dark",
   };
   try {
@@ -89,6 +92,7 @@ function readStored(): StoredPatch {
     return {
       params: { ...DEFAULT_PARAMS, ...parsed.params },
       seed: canonSeed(parsed.seed ?? fallback.seed),
+      mode: parsed.mode === "lofi" ? "lofi" : "ambient",
       theme: parsed.theme ?? fallback.theme,
     };
   } catch {
@@ -103,13 +107,15 @@ function loadPatch(): StoredPatch {
   const q = new URLSearchParams(window.location.search);
   const urlSeed = q.get("s");
   const urlEng = q.get("e");
+  const urlMode = q.get("m");
   const seed = canonSeed(urlSeed ?? stored.seed);
   const params = urlEng
     ? (decodeEngine(urlEng) ?? stored.params)
     : urlSeed
       ? paramsForSeed(seed)
       : stored.params;
-  return { params, seed, theme: stored.theme };
+  const mode: Mode = urlMode === "lofi" ? "lofi" : urlMode === "ambient" ? "ambient" : stored.mode;
+  return { params, seed, mode, theme: stored.theme };
 }
 
 function fmt(s: number) {
@@ -117,7 +123,7 @@ function fmt(s: number) {
 }
 
 export default function App() {
-  const [{ params, seed, theme }, setPatch] = useState(loadPatch);
+  const [{ params, seed, mode, theme }, setPatch] = useState(loadPatch);
   const [playing, setPlaying] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -147,8 +153,8 @@ export default function App() {
   useEffect(() => () => engineRef.current?.dispose(), []);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ params, seed, theme }));
-  }, [params, seed, theme]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ params, seed, mode, theme }));
+  }, [params, seed, mode, theme]);
 
   // keep the address bar a live, shareable link to the current patch. drop ?e
   // while the mix still equals what the seed implies — it's only needed once
@@ -161,10 +167,11 @@ export default function App() {
       const q = new URLSearchParams({ s: seed });
       const e = encodeEngine(params);
       if (e !== encodeEngine(paramsForSeed(seed))) q.set("e", e);
+      if (mode !== "ambient") q.set("m", mode);
       window.history.replaceState(null, "", `${window.location.pathname}?${q}`);
     }, 300);
     return () => clearTimeout(t);
-  }, [params, seed]);
+  }, [params, seed, mode]);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -175,12 +182,12 @@ export default function App() {
   // While playing, the live engine drives these, so this is a no-op.
   useEffect(() => {
     if (playing) return;
-    const pv = previewSeed(seed);
+    const pv = mode === "lofi" ? previewLofi(seed) : previewSeed(seed);
     setKeyName(pv.key);
     setBpm(pv.bpm);
     setCharacter(pv.character);
     setLastNotes(["—", "—", "—"]);
-  }, [seed, playing]);
+  }, [seed, playing, mode]);
 
   useEffect(() => {
     if (!recording) return;
@@ -208,7 +215,8 @@ export default function App() {
       // small guard so a rapid stop->play doesn't overlap with the prior
       // engine's audio nodes still tearing down
       await new Promise((r) => setTimeout(r, 150));
-      engineRef.current = await buildEngine(
+      const build = mode === "lofi" ? buildLofiEngine : buildEngine;
+      engineRef.current = await build(
         seed,
         () => paramsRef.current,
         (ev) => {
@@ -430,6 +438,23 @@ export default function App() {
                 ↻
               </IconButton>
             </Transport>
+          </div>
+
+          <div className="modes" role="group" aria-label="engine mode">
+            {(["ambient", "lofi"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                className="preset mode"
+                data-active={mode === m ? "true" : "false"}
+                // switching rebuilds the whole audio graph, so it waits for a stop
+                disabled={playing}
+                title={playing ? "stop to switch engine" : `${m} engine`}
+                onClick={() => setPatch((prev) => ({ ...prev, mode: m }))}
+              >
+                {m}
+              </button>
+            ))}
           </div>
 
           <div className="presets">

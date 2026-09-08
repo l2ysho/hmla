@@ -1,3 +1,5 @@
+export type Mode = "ambient" | "lofi";
+
 export interface Params {
   density: number;
   brightness: number;

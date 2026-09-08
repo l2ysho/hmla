@@ -373,6 +373,22 @@ body {
   flex-wrap: wrap;
   min-width: 0;
 }
+/* engine mode — a two-way segmented control above the presets. Reuses the
+ * .preset chrome so the two rows read as one control stack. */
+.modes {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+}
+.mode {
+  min-width: 88px;
+}
+.mode:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
 .preset {
   height: var(--control-h-sm);
   padding: 0 var(--space-3);
