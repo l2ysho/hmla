@@ -22,7 +22,3 @@ export function mulberry32(a: number): () => number {
 }
 
 export const makeRng = (seed: string): (() => number) => mulberry32(xmur3(String(seed))());
-
-/** Euclidean rhythm: k hits spread evenly over n steps, plus rotation. */
-export const euclid = (k: number, n: number, rot = 0): boolean[] =>
-  Array.from({ length: n }, (_, i) => (((i + rot) % n) * k) % n < k);

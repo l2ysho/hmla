@@ -1,4 +1,4 @@
-import type { Params } from "../types";
+import type { Mode, Params } from "../types";
 
 // Engine identity colors reference the app-level token palette
 // (src/styles/engine-signals.css) so nothing is hard-coded and the scope +
@@ -133,3 +133,62 @@ export const PRESETS: Record<string, Omit<Params, "lofi"> & { lofi: number }> = 
     lofi: 0.5,
   },
 };
+
+/* The lo-fi engine reads the same eight faders but they mean different things
+ * there — `lofi` is bitcrush depth and tape wow, `grain` the vinyl bed, `pulse`
+ * the drum bus. The ambient presets above are tuned for a drone and leave the
+ * beat sounding characterless: `puls`, the preset most seeds land on, sets lofi
+ * to 0.12, which is almost none of what makes the mode itself. */
+export const LOFI_PRESETS: Record<string, Params> = {
+  dusty: {
+    density: 0.55,
+    brightness: 0.45,
+    space: 0.5,
+    chaos: 0.25,
+    grain: 0.6,
+    pulse: 0.8,
+    sub: 0.6,
+    shimmer: false,
+    lofi: 0.45,
+  },
+  tape: {
+    density: 0.5,
+    brightness: 0.34,
+    space: 0.55,
+    chaos: 0.3,
+    grain: 0.75,
+    pulse: 0.75,
+    sub: 0.55,
+    shimmer: false,
+    lofi: 0.72,
+  },
+  // the clean end of the bank, but not clean enough to stop sounding like the
+  // mode — a seed landing here should still get crush and vinyl, or lo-fi
+  // reads as a plain drum machine
+  crisp: {
+    density: 0.6,
+    brightness: 0.66,
+    space: 0.38,
+    chaos: 0.18,
+    grain: 0.42,
+    pulse: 0.85,
+    sub: 0.65,
+    shimmer: true,
+    lofi: 0.32,
+  },
+  sleepy: {
+    density: 0.25,
+    brightness: 0.4,
+    space: 0.7,
+    chaos: 0.15,
+    grain: 0.65,
+    pulse: 0.5,
+    sub: 0.5,
+    shimmer: false,
+    lofi: 0.5,
+  },
+};
+
+/** The preset bank for a mode. */
+export const presetsFor = (mode: Mode): Record<string, Params> =>
+  mode === "lofi" ? LOFI_PRESETS : (PRESETS as Record<string, Params>);

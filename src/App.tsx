@@ -14,13 +14,14 @@ import { Tag } from "./components/ds/Tag";
 import { Transport } from "./components/ds/Transport";
 import { SignalMark } from "./components/SignalMark";
 import { buildEngine } from "./engine/buildEngine";
+import { buildLofiEngine, previewLofi } from "./engine/lofi";
 import { previewSeed } from "./engine/identity";
-import { PRESETS, VOICE_COLORS } from "./engine/constants";
+import { presetsFor, VOICE_COLORS } from "./engine/constants";
 import { makeRng } from "./engine/prng";
 import { canonSeed, makeSeed, randomSeed, seedDigits } from "./engine/seed";
 import { decodeEngine, encodeEngine } from "./engine/share";
 import { useVisual } from "./engine/useVisual";
-import type { EngineEvent, EngineHandle, Params } from "./types";
+import type { EngineEvent, EngineHandle, Mode, Params } from "./types";
 
 const DEFAULT_PARAMS: Params = {
   density: 0.5,
@@ -50,22 +51,23 @@ const STORAGE_KEY = "hmla.patch.v1";
 interface StoredPatch {
   params: Params;
   seed: string;
+  mode: Mode;
   theme: "dark" | "light";
 }
 
 // Each seed deterministically maps to one of the presets via an independent
 // PRNG stream, so a given seed always implies the same starting mix.
-const PRESET_NAMES = Object.keys(PRESETS);
-function presetForSeed(seed: string): string {
-  return PRESET_NAMES[Math.floor(makeRng(`${seed}-preset`)() * PRESET_NAMES.length)];
+function presetForSeed(seed: string, mode: Mode): string {
+  const names = Object.keys(presetsFor(mode));
+  return names[Math.floor(makeRng(`${seed}-preset`)() * names.length)];
 }
 // the full param set a seed implies (its preset, over the defaults)
-function paramsForSeed(seed: string): Params {
-  return { ...DEFAULT_PARAMS, ...PRESETS[presetForSeed(seed)] };
+function paramsForSeed(seed: string, mode: Mode): Params {
+  return { ...DEFAULT_PARAMS, ...presetsFor(mode)[presetForSeed(seed, mode)] };
 }
 // name of the preset whose values exactly match these params, else null
-function matchPreset(p: Params): string | null {
-  for (const [name, preset] of Object.entries(PRESETS)) {
+function matchPreset(p: Params, mode: Mode): string | null {
+  for (const [name, preset] of Object.entries(presetsFor(mode))) {
     const ok = (Object.keys(preset) as (keyof Params)[]).every((k) =>
       typeof preset[k] === "number" && typeof p[k] === "number"
         ? Math.round((preset[k] as number) * 100) === Math.round((p[k] as number) * 100)
@@ -80,6 +82,7 @@ function readStored(): StoredPatch {
   const fallback: StoredPatch = {
     params: DEFAULT_PARAMS,
     seed: randomSeed(),
+    mode: "ambient",
     theme: "dark",
   };
   try {
@@ -89,6 +92,7 @@ function readStored(): StoredPatch {
     return {
       params: { ...DEFAULT_PARAMS, ...parsed.params },
       seed: canonSeed(parsed.seed ?? fallback.seed),
+      mode: parsed.mode === "lofi" ? "lofi" : "ambient",
       theme: parsed.theme ?? fallback.theme,
     };
   } catch {
@@ -103,13 +107,17 @@ function loadPatch(): StoredPatch {
   const q = new URLSearchParams(window.location.search);
   const urlSeed = q.get("s");
   const urlEng = q.get("e");
+  const urlMode = q.get("m");
   const seed = canonSeed(urlSeed ?? stored.seed);
+  // resolve the mode first: each mode has its own preset bank, so the params a
+  // seed implies depend on which engine is going to play it
+  const mode: Mode = urlMode === "lofi" ? "lofi" : urlMode === "ambient" ? "ambient" : stored.mode;
   const params = urlEng
     ? (decodeEngine(urlEng) ?? stored.params)
     : urlSeed
-      ? paramsForSeed(seed)
+      ? paramsForSeed(seed, mode)
       : stored.params;
-  return { params, seed, theme: stored.theme };
+  return { params, seed, mode, theme: stored.theme };
 }
 
 function fmt(s: number) {
@@ -117,7 +125,7 @@ function fmt(s: number) {
 }
 
 export default function App() {
-  const [{ params, seed, theme }, setPatch] = useState(loadPatch);
+  const [{ params, seed, mode, theme }, setPatch] = useState(loadPatch);
   const [playing, setPlaying] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -127,7 +135,7 @@ export default function App() {
   const [recording, setRecording] = useState(false);
   const [recSecs, setRecSecs] = useState(0);
   const [canRecord, setCanRecord] = useState(true);
-  const [activePreset, setActivePreset] = useState<string | null>(() => matchPreset(params));
+  const [activePreset, setActivePreset] = useState<string | null>(() => matchPreset(params, mode));
   const [elapsed, setElapsed] = useState(0);
   const [character, setCharacter] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -147,8 +155,8 @@ export default function App() {
   useEffect(() => () => engineRef.current?.dispose(), []);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ params, seed, theme }));
-  }, [params, seed, theme]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ params, seed, mode, theme }));
+  }, [params, seed, mode, theme]);
 
   // keep the address bar a live, shareable link to the current patch. drop ?e
   // while the mix still equals what the seed implies — it's only needed once
@@ -160,11 +168,12 @@ export default function App() {
     const t = setTimeout(() => {
       const q = new URLSearchParams({ s: seed });
       const e = encodeEngine(params);
-      if (e !== encodeEngine(paramsForSeed(seed))) q.set("e", e);
+      if (e !== encodeEngine(paramsForSeed(seed, mode))) q.set("e", e);
+      if (mode !== "ambient") q.set("m", mode);
       window.history.replaceState(null, "", `${window.location.pathname}?${q}`);
     }, 300);
     return () => clearTimeout(t);
-  }, [params, seed]);
+  }, [params, seed, mode]);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -175,12 +184,12 @@ export default function App() {
   // While playing, the live engine drives these, so this is a no-op.
   useEffect(() => {
     if (playing) return;
-    const pv = previewSeed(seed);
+    const pv = mode === "lofi" ? previewLofi(seed) : previewSeed(seed);
     setKeyName(pv.key);
     setBpm(pv.bpm);
     setCharacter(pv.character);
     setLastNotes(["—", "—", "—"]);
-  }, [seed, playing]);
+  }, [seed, playing, mode]);
 
   useEffect(() => {
     if (!recording) return;
@@ -208,7 +217,8 @@ export default function App() {
       // small guard so a rapid stop->play doesn't overlap with the prior
       // engine's audio nodes still tearing down
       await new Promise((r) => setTimeout(r, 150));
-      engineRef.current = await buildEngine(
+      const build = mode === "lofi" ? buildLofiEngine : buildEngine;
+      engineRef.current = await build(
         seed,
         () => paramsRef.current,
         (ev) => {
@@ -275,7 +285,17 @@ export default function App() {
   };
   const applyPreset = (name: string) => {
     setActivePreset(name);
-    setPatch((s) => ({ ...s, params: { ...s.params, ...PRESETS[name] } }));
+    setPatch((s) => ({ ...s, params: { ...s.params, ...presetsFor(s.mode)[name] } }));
+  };
+  // Switching engine also snaps the mix to that engine's preset for this seed.
+  // The banks are not interchangeable — the ambient presets leave the lo-fi
+  // engine sounding characterless (`puls`, which most seeds draw, sets lofi to
+  // 0.12, so almost none of what defines the mode), and carrying faders across
+  // modes misrepresents whichever engine you switch to.
+  const setMode = (next: Mode) => {
+    const name = presetForSeed(seed, next);
+    setActivePreset(name);
+    setPatch((s) => ({ ...s, mode: next, params: { ...s.params, ...presetsFor(next)[name] } }));
   };
   const setSeed = (next: string) => {
     setPatch((s) => ({ ...s, seed: next }));
@@ -284,9 +304,11 @@ export default function App() {
   // reseed + the seed field's blur/Enter — not per keystroke, so faders don't
   // thrash while typing)
   const commitSeed = (next: string) => {
-    const name = presetForSeed(next);
-    setActivePreset(name);
-    setPatch((s) => ({ ...s, seed: next, params: { ...s.params, ...PRESETS[name] } }));
+    setPatch((s) => {
+      const name = presetForSeed(next, s.mode);
+      setActivePreset(name);
+      return { ...s, seed: next, params: { ...s.params, ...presetsFor(s.mode)[name] } };
+    });
   };
   const reseed = () => commitSeed(randomSeed());
 
@@ -295,7 +317,7 @@ export default function App() {
   const shareLink = () => {
     const q = new URLSearchParams({ s: seed });
     const e = encodeEngine(params);
-    if (e !== encodeEngine(paramsForSeed(seed))) q.set("e", e);
+    if (e !== encodeEngine(paramsForSeed(seed, mode))) q.set("e", e);
     return `${window.location.origin}${window.location.pathname}?${q}`;
   };
   const openShare = (target: "x" | "bsky" | "fb") => {
@@ -336,7 +358,17 @@ export default function App() {
               <SignalMark className="signalmark" />
             </div>
             <p className="tagline">generative ambient — seeded, ever-evolving</p>
-            <span className="brand__ver">fw {__APP_VERSION__}</span>
+            <span className="brand__ver">
+              fw {__APP_VERSION__} · agpl-3.0 ·{" "}
+              <a
+                className="brand__src"
+                href="https://github.com/l2ysho/hmla"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                source
+              </a>
+            </span>
           </div>
           <div className="head-tools">
             <div className="head-tools__row">
@@ -422,8 +454,25 @@ export default function App() {
             </Transport>
           </div>
 
+          <div className="modes" role="group" aria-label="engine mode">
+            {(["ambient", "lofi"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                className="preset mode"
+                data-active={mode === m ? "true" : "false"}
+                // switching rebuilds the whole audio graph, so it waits for a stop
+                disabled={playing}
+                title={playing ? "stop to switch engine" : `${m} engine`}
+                onClick={() => setMode(m)}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+
           <div className="presets">
-            {Object.keys(PRESETS).map((name) => (
+            {Object.keys(presetsFor(mode)).map((name) => (
               <button
                 key={name}
                 type="button"
