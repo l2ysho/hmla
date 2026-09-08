@@ -2,8 +2,10 @@ import * as Tone from "tone";
 import { DETUNES, SCALES } from "./constants";
 import { buildDrums, type Hit } from "./drums";
 import { deriveIdentity, type TrackCfg } from "./identity";
-import { makeRng, euclid } from "./prng";
+import { parseTrack, renderGrid, trackSrc } from "./patterns";
+import { makeRng } from "./prng";
 import { audioBufferToWav } from "./wav";
+import type { Pattern } from "@strudel/core";
 import type { EngineEvent, EngineHandle, Params } from "../types";
 
 const clamp = (x: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, x));
@@ -407,7 +409,12 @@ export async function buildEngine(
      Polymeter: boom anchors the base grid, but every other track may run a
      cycle a quarter shorter or longer (independent `<seed>-poly` stream), so
      the patterns phase against each other over several bars instead of
-     realigning every bar. */
+     realigning every bar.
+
+     Each track holds its Strudel pattern (parsed once) plus the step grid for
+     the bar currently playing. The grid is re-rendered at the track's own bar
+     turn — see `refreshDue` in the transport loop — which is what lets the
+     chaos fader thin the pattern live. */
   const prnd = makeRng(`${seed}-poly`);
   const quarter = Math.max(2, Math.round(steps / 4));
   const polyLen = (anchor: boolean) => {
@@ -420,17 +427,32 @@ export async function buildEngine(
     thresh: number;
     active: boolean;
     len: number;
-    pat: boolean[];
+    /** Strudel pattern — re-queried per bar, re-parsed only on mutation */
+    pat: Pattern;
+    /** the bar currently playing, `len` steps wide */
+    grid: boolean[];
+    /** per-track random stream, so tracks don't degrade in lockstep */
+    randSeed: number;
+    /** set by a mutation to force a re-render before the next bar turn */
+    dirty: boolean;
   }
   const pickHits = (c: TrackCfg) => c.hits[0] + ((rrnd() * (c.hits[1] - c.hits[0] + 1)) | 0);
-  const mkTrack = (c: TrackCfg, anchor = false): Track => ({
-    hits: pickHits(c),
-    rot: (rrnd() * steps) | 0,
-    thresh: c.thresh,
-    active: c.active,
-    len: polyLen(anchor),
-    pat: [],
-  });
+  const mkTrack = (c: TrackCfg, anchor = false): Track => {
+    const hits = pickHits(c);
+    const rot = (rrnd() * steps) | 0;
+    const len = polyLen(anchor);
+    return {
+      hits,
+      rot,
+      thresh: c.thresh,
+      active: c.active,
+      len,
+      pat: parseTrack(trackSrc(hits, len, rot)),
+      grid: Array.from({ length: len }, () => false),
+      randSeed: (rrnd() * 0x7fffffff) | 0,
+      dirty: true,
+    };
+  };
   const tracks: Record<"boom" | "pluck" | "shaker" | "ping" | "rim", Track> = {
     boom: mkTrack(groove.boom, true),
     pluck: mkTrack(groove.pluck),
@@ -438,7 +460,6 @@ export async function buildEngine(
     ping: mkTrack(groove.ping),
     rim: mkTrack(groove.rim),
   };
-  for (const t of Object.values(tracks)) t.pat = euclid(t.hits, t.len, t.rot);
 
   /* pluck tonal material — from the current scale, upper half */
   let pluckPool: string[] = [];
@@ -450,12 +471,29 @@ export async function buildEngine(
   refreshPluckPool();
 
   let step = 0; // global step counter — bar position is step % steps
+
+  /* Re-render a track's bar from its Strudel pattern. Chaos thins the pattern
+     here rather than per-tick, so a bar stays internally coherent instead of
+     flickering while the fader moves; a change lands on the next bar turn. */
+  const CHAOS_DROP = 0.25; // chaos 1.0 drops a quarter of a track's onsets
+  const refresh = (t: Track, p: Params) => {
+    t.grid = renderGrid(t.pat, t.len, Math.floor(step / t.len), p.chaos * CHAOS_DROP, t.randSeed);
+    t.dirty = false;
+  };
+  /* Tracks have different cycle lengths (polymeter), so each refreshes on its
+     own bar turn — that phasing is the point. */
+  const refreshDue = (p: Params) => {
+    for (const t of Object.values(tracks)) {
+      if (t.active && (t.dirty || step % t.len === 0)) refresh(t, p);
+    }
+  };
   const gate = (track: keyof typeof tracks, p: Params): boolean | "ghost" => {
     const t = tracks[track];
     if (!t.active) return false;
     if (p.pulse < t.thresh) return false;
-    let hit: boolean | "ghost" = t.pat[step % t.len];
-    if (hit && rrnd() < p.chaos * 0.25) hit = false; // skip
+    // the chaos *skip* is baked into the grid by degradeBy at render time;
+    // ghost notes are additive, so they stay here
+    let hit: boolean | "ghost" = t.grid[step % t.len];
     if (!hit && rrnd() < p.chaos * 0.08 * p.pulse) hit = "ghost"; // ghost note
     if (!hit) return false;
     const density = (0.65 + p.pulse * 0.35) * (1 + breath * 0.2);
@@ -486,6 +524,7 @@ export async function buildEngine(
   try {
     loopId = Tone.Transport.scheduleRepeat((time) => {
       const p = getParams();
+      refreshDue(p);
       const barPos = step % steps;
       if (p.pulse <= 0.03) {
         // pulse is down — apply any pending mutation silently, skip the fill
@@ -573,7 +612,8 @@ export async function buildEngine(
           const max = Math.min(t.len, cfg.hits[1] + 1);
           t.hits = Math.max(cfg.hits[0], Math.min(max, t.hits + (rrnd() < 0.5 ? -1 : 1)));
         }
-        t.pat = euclid(t.hits, t.len, t.rot);
+        t.pat = parseTrack(trackSrc(t.hits, t.len, t.rot));
+        t.dirty = true; // picked up by refreshDue on the next tick
         if (k === "pluck") refreshPluckPool();
         emit({ type: "pattern" });
       };
