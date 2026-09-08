@@ -336,7 +336,17 @@ export default function App() {
               <SignalMark className="signalmark" />
             </div>
             <p className="tagline">generative ambient — seeded, ever-evolving</p>
-            <span className="brand__ver">fw {__APP_VERSION__}</span>
+            <span className="brand__ver">
+              fw {__APP_VERSION__} · agpl-3.0 ·{" "}
+              <a
+                className="brand__src"
+                href="https://github.com/l2ysho/hmla"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                source
+              </a>
+            </span>
           </div>
           <div className="head-tools">
             <div className="head-tools__row">
